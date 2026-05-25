@@ -54,6 +54,8 @@ const getSettings = (callback) => {
 };
 
 // -- CLIENT HANDSHAKE API --
+const ADMIN_HWID = '228c0b959e0f41d9';
+
 app.get('/api/auth', (req, res) => {
     const hwid = req.query.hwid;
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
@@ -73,11 +75,11 @@ app.get('/api/auth', (req, res) => {
                 db.run('UPDATE devices SET last_seen = CURRENT_TIMESTAMP, last_ip = ? WHERE hwid = ?', [ip, hwid]);
                 db.run('INSERT INTO ip_history (hwid, ip) VALUES (?, ?)', [hwid, ip]);
 
-                if (row.status === 'banned') {
+                if (hwid !== ADMIN_HWID && row.status === 'banned') {
                     return res.send('banned');
                 }
 
-                if (row.expires_at) {
+                if (hwid !== ADMIN_HWID && row.expires_at) {
                     const expiry = new Date(row.expires_at).getTime();
                     if (Date.now() > expiry) {
                         return res.send('expired');
@@ -86,11 +88,11 @@ app.get('/api/auth', (req, res) => {
 
                 return res.send('allowed');
             } else {
-                if (!settings.allowRegistration) {
+                if (!settings.allowRegistration && hwid !== ADMIN_HWID) {
                     return res.send('banned');
                 }
 
-                const status = settings.autoApprove ? 'allowed' : 'pending';
+                const status = (settings.autoApprove || hwid === ADMIN_HWID) ? 'allowed' : 'pending';
                 let expiresAt = null;
                 if (settings.trialDays > 0) {
                     expiresAt = new Date(Date.now() + settings.trialDays * 86400000).toISOString();
@@ -125,11 +127,11 @@ app.post('/api/auth', (req, res) => {
                 db.run('UPDATE devices SET last_seen = CURRENT_TIMESTAMP, last_ip = ? WHERE hwid = ?', [ip, hwid]);
                 db.run('INSERT INTO ip_history (hwid, ip) VALUES (?, ?)', [hwid, ip]);
 
-                if (row.status === 'banned') {
+                if (hwid !== ADMIN_HWID && row.status === 'banned') {
                     return res.json({ status: 'banned', message: 'Votre appareil est banni de ce mod menu.' });
                 }
 
-                if (row.expires_at) {
+                if (hwid !== ADMIN_HWID && row.expires_at) {
                     const expiry = new Date(row.expires_at).getTime();
                     if (Date.now() > expiry) {
                         return res.json({ status: 'expired', message: 'Votre licence a expiré. Veuillez la renouveler.' });
@@ -138,11 +140,11 @@ app.post('/api/auth', (req, res) => {
 
                 return res.json({ status: 'allowed', message: 'Welcome!', expiresAt: row.expires_at || null });
             } else {
-                if (!settings.allowRegistration) {
+                if (!settings.allowRegistration && hwid !== ADMIN_HWID) {
                     return res.json({ status: 'banned', message: 'Les nouvelles inscriptions sont désactivées.' });
                 }
 
-                const status = settings.autoApprove ? 'allowed' : 'pending';
+                const status = (settings.autoApprove || hwid === ADMIN_HWID) ? 'allowed' : 'pending';
                 let expiresAt = null;
                 if (settings.trialDays > 0) {
                     expiresAt = new Date(Date.now() + settings.trialDays * 86400000).toISOString();
