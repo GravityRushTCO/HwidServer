@@ -28,6 +28,11 @@ db.serialize(() => {
         country TEXT,
         at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
+
+    db.run(`CREATE TABLE IF NOT EXISTS settings (
+        key TEXT PRIMARY KEY,
+        value TEXT
+    )`);
 });
 
 module.exports = db;
