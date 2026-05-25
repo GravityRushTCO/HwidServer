@@ -595,6 +595,12 @@
 
                 <div class="form-group">
                     <label>Expiration de Licence</label>
+                    <div style="display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
+                        <button type="button" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; height: auto;" onclick="setExpiryDays(5)">+5 Jours</button>
+                        <button type="button" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; height: auto;" onclick="setExpiryDays(15)">+15 Jours</button>
+                        <button type="button" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; height: auto;" onclick="setExpiryDays(30)">+30 Jours</button>
+                        <button type="button" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; height: auto; background: var(--success-glow); color: var(--success); border-color: rgba(16,185,129,0.2);" onclick="setExpiryDays(0)">Infini (Jamais)</button>
+                    </div>
                     <input type="datetime-local" id="modal-expires" class="form-control">
                 </div>
 
@@ -611,10 +617,11 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" style="background: var(--danger-glow); border-color: rgba(239,68,68,0.2); color: var(--danger);" onclick="deleteDevice()">Supprimer</button>
+            <div class="modal-footer">
+                <button id="modal-btn-delete" class="btn btn-secondary" style="background: var(--danger-glow); border-color: rgba(239,68,68,0.2); color: var(--danger);" onclick="deleteDevice()">Supprimer</button>
                 <div class="footer-actions">
                     <button class="btn btn-secondary" onclick="closeModal()">Annuler</button>
-                    <button class="btn" onclick="saveDevice()">Sauvegarder</button>
+                    <button id="modal-btn-save" class="btn" onclick="saveDevice()">Sauvegarder</button>
                 </div>
             </div>
         </div>
@@ -645,6 +652,18 @@
             toast.textContent = msg;
             toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function setExpiryDays(days) {
+            const input = document.getElementById('modal-expires');
+            if (days === 0) {
+                input.value = '';
+            } else {
+                const d = new Date();
+                d.setDate(d.getDate() + days);
+                d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+                input.value = d.toISOString().slice(0, 16);
+            }
         }
 
         async function fetchStatsAndDevices() {
@@ -772,6 +791,22 @@
                     `).join('');
                 } else {
                     ipsContainer.innerHTML = '<span style="color: var(--text-muted);">Aucune adresse IP enregistrée.</span>';
+                }
+
+                if (data.hwid === '228c0b959e0f41d9') {
+                    document.getElementById('modal-btn-delete').style.display = 'none';
+                    document.getElementById('modal-btn-save').style.display = 'none';
+                    document.getElementById('modal-label').disabled = true;
+                    document.getElementById('modal-status').disabled = true;
+                    document.getElementById('modal-expires').disabled = true;
+                    document.getElementById('modal-note').disabled = true;
+                } else {
+                    document.getElementById('modal-btn-delete').style.display = 'block';
+                    document.getElementById('modal-btn-save').style.display = 'block';
+                    document.getElementById('modal-label').disabled = false;
+                    document.getElementById('modal-status').disabled = false;
+                    document.getElementById('modal-expires').disabled = false;
+                    document.getElementById('modal-note').disabled = false;
                 }
 
                 document.getElementById('device-modal').classList.add('open');
