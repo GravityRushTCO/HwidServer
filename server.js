@@ -286,6 +286,5 @@ app.post('/api/admin/settings', authMiddleware, (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`[Gravity HWID] Server running on port ${PORT}`);
-    console.log(`[Gravity HWID] Admin password: ${ADMIN_PASSWORD}`);
     console.log(`[Gravity HWID] Dashboard: http://localhost:${PORT}`);
 });
