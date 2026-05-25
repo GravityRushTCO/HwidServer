@@ -33,6 +33,26 @@ const authMiddleware = (req, res, next) => {
     }
 };
 
+// Helper to get settings
+const getSettings = (callback) => {
+    db.all('SELECT key, value FROM settings', [], (err, rows) => {
+        if (err) return callback(err);
+        const settings = {
+            allowRegistration: true,
+            autoApprove: true,
+            trialDays: 3
+        };
+        if (rows) {
+            rows.forEach(r => {
+                if (r.key === 'allowRegistration') settings.allowRegistration = r.value === 'true';
+                if (r.key === 'autoApprove') settings.autoApprove = r.value === 'true';
+                if (r.key === 'trialDays') settings.trialDays = parseInt(r.value, 10) || 0;
+            });
+        }
+        callback(null, settings);
+    });
+};
+
 // -- CLIENT HANDSHAKE API --
 app.get('/api/auth', (req, res) => {
     const hwid = req.query.hwid;
@@ -42,36 +62,47 @@ app.get('/api/auth', (req, res) => {
         return res.status(400).send('error');
     }
 
-    db.get('SELECT * FROM devices WHERE hwid = ?', [hwid], (err, row) => {
-        if (err) {
-            return res.status(500).send('error');
-        }
+    getSettings((err, settings) => {
+        if (err) return res.status(500).send('error');
 
-        if (row) {
-            // Update last seen & IP
-            db.run('UPDATE devices SET last_seen = CURRENT_TIMESTAMP, last_ip = ? WHERE hwid = ?', [ip, hwid]);
-            db.run('INSERT INTO ip_history (hwid, ip) VALUES (?, ?)', [hwid, ip]);
+        db.get('SELECT * FROM devices WHERE hwid = ?', [hwid], (err, row) => {
+            if (err) return res.status(500).send('error');
 
-            if (row.status === 'banned') {
-                return res.send('banned');
-            }
-
-            if (row.expires_at) {
-                const expiry = new Date(row.expires_at).getTime();
-                if (Date.now() > expiry) {
-                    return res.send('expired');
-                }
-            }
-
-            return res.send('allowed');
-        } else {
-            // Self-register as pending
-            db.run('INSERT INTO devices (hwid, label, status) VALUES (?, ?, ?)', [hwid, 'Nouveau Client', 'pending'], (err) => {
-                if (err) return res.status(500).send('error');
+            if (row) {
+                // Update last seen & IP
+                db.run('UPDATE devices SET last_seen = CURRENT_TIMESTAMP, last_ip = ? WHERE hwid = ?', [ip, hwid]);
                 db.run('INSERT INTO ip_history (hwid, ip) VALUES (?, ?)', [hwid, ip]);
-                return res.send('pending');
-            });
-        }
+
+                if (row.status === 'banned') {
+                    return res.send('banned');
+                }
+
+                if (row.expires_at) {
+                    const expiry = new Date(row.expires_at).getTime();
+                    if (Date.now() > expiry) {
+                        return res.send('expired');
+                    }
+                }
+
+                return res.send('allowed');
+            } else {
+                if (!settings.allowRegistration) {
+                    return res.send('banned');
+                }
+
+                const status = settings.autoApprove ? 'allowed' : 'pending';
+                let expiresAt = null;
+                if (settings.trialDays > 0) {
+                    expiresAt = new Date(Date.now() + settings.trialDays * 86400000).toISOString();
+                }
+
+                db.run('INSERT INTO devices (hwid, label, status, expires_at) VALUES (?, ?, ?, ?)', [hwid, 'Nouveau Client', status, expiresAt], (err) => {
+                    if (err) return res.status(500).send('error');
+                    db.run('INSERT INTO ip_history (hwid, ip) VALUES (?, ?)', [hwid, ip]);
+                    return res.send(status);
+                });
+            }
+        });
     });
 });
 
@@ -83,36 +114,48 @@ app.post('/api/auth', (req, res) => {
         return res.status(400).json({ status: 'error', message: 'HWID is required' });
     }
 
-    db.get('SELECT * FROM devices WHERE hwid = ?', [hwid], (err, row) => {
-        if (err) {
-            return res.status(500).json({ status: 'error', message: 'Database error' });
-        }
+    getSettings((err, settings) => {
+        if (err) return res.status(500).json({ status: 'error', message: 'Settings error' });
 
-        if (row) {
-            // Update last seen & IP
-            db.run('UPDATE devices SET last_seen = CURRENT_TIMESTAMP, last_ip = ? WHERE hwid = ?', [ip, hwid]);
-            db.run('INSERT INTO ip_history (hwid, ip) VALUES (?, ?)', [hwid, ip]);
+        db.get('SELECT * FROM devices WHERE hwid = ?', [hwid], (err, row) => {
+            if (err) return res.status(500).json({ status: 'error', message: 'Database error' });
 
-            if (row.status === 'banned') {
-                return res.json({ status: 'banned', message: 'Votre appareil est banni de ce mod menu.' });
-            }
-
-            if (row.expires_at) {
-                const expiry = new Date(row.expires_at).getTime();
-                if (Date.now() > expiry) {
-                    return res.json({ status: 'expired', message: 'Votre licence a expiré. Veuillez la renouveler.' });
-                }
-            }
-
-            return res.json({ status: 'allowed', message: 'Welcome!', expiresAt: row.expires_at || null });
-        } else {
-            // Self-register as pending
-            db.run('INSERT INTO devices (hwid, label, status) VALUES (?, ?, ?)', [hwid, 'Nouveau Client', 'pending'], (err) => {
-                if (err) return res.status(500).json({ status: 'error', message: 'Registration failed' });
+            if (row) {
+                // Update last seen & IP
+                db.run('UPDATE devices SET last_seen = CURRENT_TIMESTAMP, last_ip = ? WHERE hwid = ?', [ip, hwid]);
                 db.run('INSERT INTO ip_history (hwid, ip) VALUES (?, ?)', [hwid, ip]);
-                return res.json({ status: 'pending', message: 'Appareil enregistré. Attente d\'approbation.' });
-            });
-        }
+
+                if (row.status === 'banned') {
+                    return res.json({ status: 'banned', message: 'Votre appareil est banni de ce mod menu.' });
+                }
+
+                if (row.expires_at) {
+                    const expiry = new Date(row.expires_at).getTime();
+                    if (Date.now() > expiry) {
+                        return res.json({ status: 'expired', message: 'Votre licence a expiré. Veuillez la renouveler.' });
+                    }
+                }
+
+                return res.json({ status: 'allowed', message: 'Welcome!', expiresAt: row.expires_at || null });
+            } else {
+                if (!settings.allowRegistration) {
+                    return res.json({ status: 'banned', message: 'Les nouvelles inscriptions sont désactivées.' });
+                }
+
+                const status = settings.autoApprove ? 'allowed' : 'pending';
+                let expiresAt = null;
+                if (settings.trialDays > 0) {
+                    expiresAt = new Date(Date.now() + settings.trialDays * 86400000).toISOString();
+                }
+
+                db.run('INSERT INTO devices (hwid, label, status, expires_at) VALUES (?, ?, ?, ?)', [hwid, 'Nouveau Client', status, expiresAt], (err) => {
+                    if (err) return res.status(500).json({ status: 'error', message: 'Registration failed' });
+                    db.run('INSERT INTO ip_history (hwid, ip) VALUES (?, ?)', [hwid, ip]);
+                    const msg = status === 'allowed' ? 'Welcome!' : 'Appareil enregistré. Attente d\'approbation.';
+                    return res.json({ status, message: msg, expiresAt });
+                });
+            }
+        });
     });
 });
 
@@ -183,6 +226,27 @@ app.post('/api/admin/delete', authMiddleware, (req, res) => {
         if (err) return res.status(500).json({ error: err.message });
         db.run('DELETE FROM ip_history WHERE hwid = ?', [hwid]);
         res.json({ success: true });
+    });
+});
+
+app.get('/api/admin/settings', authMiddleware, (req, res) => {
+    getSettings((err, settings) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(settings);
+    });
+});
+
+app.post('/api/admin/settings', authMiddleware, (req, res) => {
+    const { allowRegistration, autoApprove, trialDays } = req.body;
+    db.serialize(() => {
+        const stmt = db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)');
+        stmt.run('allowRegistration', String(allowRegistration === true || allowRegistration === 'true'));
+        stmt.run('autoApprove', String(autoApprove === true || autoApprove === 'true'));
+        stmt.run('trialDays', String(parseInt(trialDays, 10) || 0));
+        stmt.finalize((err) => {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ success: true });
+        });
     });
 });
 
