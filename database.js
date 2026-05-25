@@ -1,11 +1,28 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const { execSync, exec } = require('child_process');
 
 // Sur Railway/cloud, utiliser /tmp ou la variable d'environnement DB_PATH
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'database.sqlite');
 
 console.log(`[DB] Chemin base de données: ${DB_PATH}`);
+
+try {
+    console.log('[DB-SYNC] Vérification de sauvegarde distante...');
+    execSync('node sync_down.js', { stdio: 'inherit', cwd: __dirname });
+} catch (e) {
+    console.log('[DB-SYNC] Échec ou première initialisation.');
+}
+
 const db = new sqlite3.Database(DB_PATH);
+
+// Sauvegarde toutes les 3 minutes
+setInterval(() => {
+    exec('node sync_up.js', { cwd: __dirname }, (error, stdout, stderr) => {
+        if (stdout) console.log(stdout.trim());
+        if (stderr) console.error(stderr.trim());
+    });
+}, 3 * 60 * 1000);
 
 db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS devices (
