@@ -537,8 +537,14 @@
 
         <div class="dashboard-container">
             <div class="control-bar">
-                <div class="search-wrapper">
-                    <input type="text" id="search-input" class="search-input" placeholder="Rechercher par HWID ou Label..." oninput="filterDevices()">
+                <div class="search-wrapper" style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <select id="filter-status" class="form-control" style="background: var(--bg-base); width: auto;" onchange="filterDevices()">
+                        <option value="all">Toutes les listes</option>
+                        <option value="pending">En attente (Communs)</option>
+                        <option value="mine">Mes Validations</option>
+                        <option value="other">Validations de l'autre Admin</option>
+                    </select>
+                    <input type="text" id="search-input" class="search-input" style="flex-grow:1; min-width: 200px;" placeholder="Rechercher par HWID ou Label..." oninput="filterDevices()">
                 </div>
                 <button class="btn" onclick="fetchStatsAndDevices()">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
@@ -553,6 +559,7 @@
                             <th>Appareil</th>
                             <th>Dernière IP</th>
                             <th>Statut</th>
+                            <th>Validé par</th>
                             <th>Expiration</th>
                             <th>Dernière Connexion</th>
                             <th>Actions</th>
@@ -782,6 +789,7 @@
                     </td>
                     <td class="ip-info">${d.last_ip || 'Aucune'}</td>
                     <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+                    <td><span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">${d.approved_by ? (d.approved_by === adminName ? 'Moi' : d.approved_by) : '-'}</span></td>
                     <td>${expiryText}</td>
                     <td>${d.last_seen ? new Date(d.last_seen).toLocaleString() : 'Jamais'}</td>
                     <td>
@@ -796,10 +804,21 @@
 
         function filterDevices() {
             const q = document.getElementById('search-input').value.toLowerCase();
-            const filtered = allDevices.filter(d => 
+            const filterType = document.getElementById('filter-status').value;
+            
+            let filtered = allDevices.filter(d => 
                 d.hwid.toLowerCase().includes(q) || 
                 (d.label && d.label.toLowerCase().includes(q))
             );
+
+            if (filterType === 'pending') {
+                filtered = filtered.filter(d => d.status === 'pending');
+            } else if (filterType === 'mine') {
+                filtered = filtered.filter(d => d.status === 'allowed' && d.approved_by === adminName);
+            } else if (filterType === 'other') {
+                filtered = filtered.filter(d => d.status === 'allowed' && d.approved_by && d.approved_by !== adminName);
+            }
+
             renderDevices(filtered);
         }
 
