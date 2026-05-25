@@ -471,13 +471,19 @@
     <header>
         <div class="header-content">
             <div class="brand">
-                <div class="logo-mark">G</div>
+                <div class="logo-mark" id="logo-mark">G</div>
                 <div class="brand-text">
                     <h1>Gravity HWID</h1>
-                    <p>Console de Gestion & Licences</p>
+                    <p>Console de Gestion &amp; Licences</p>
                 </div>
             </div>
-            <button class="btn btn-secondary" onclick="logout()">Déconnexion</button>
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <div style="text-align: right;">
+                    <div id="admin-name-display" style="font-weight: 700; font-size: 14px; color: var(--text-primary);">...</div>
+                    <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Administrateur</div>
+                </div>
+                <button class="btn btn-secondary" onclick="logout()">D&eacute;connexion</button>
+            </div>
         </div>
     </header>
 
@@ -631,19 +637,56 @@
 
     <script>
         let adminPassword = localStorage.getItem('adminPassword');
+        let adminName = localStorage.getItem('adminName') || '';
         let allDevices = [];
 
-        if (!adminPassword) {
-            adminPassword = prompt('Veuillez entrer le mot de passe gestionnaire :');
-            if (adminPassword) {
+        async function initSession() {
+            if (!adminPassword) {
+                adminPassword = prompt('Mot de passe administrateur :');
+                if (!adminPassword) { alert('Accès refusé.'); return; }
                 localStorage.setItem('adminPassword', adminPassword);
-            } else {
-                alert('Accès refusé.');
+            }
+            // Fetch identity from server
+            try {
+                const res = await fetch('/api/admin/me', {
+                    headers: { 'Authorization': adminPassword }
+                });
+                if (res.status === 401) {
+                    localStorage.removeItem('adminPassword');
+                    localStorage.removeItem('adminName');
+                    alert('Mot de passe incorrect.');
+                    location.reload();
+                    return;
+                }
+                const data = await res.json();
+                adminName = data.name;
+                localStorage.setItem('adminName', adminName);
+                updateAdminUI();
+                fetchStatsAndDevices();
+            } catch(e) {
+                fetchStatsAndDevices();
             }
         }
 
+        function updateAdminUI() {
+            const nameEl = document.getElementById('admin-name-display');
+            const logoEl = document.getElementById('logo-mark');
+            if (adminName) {
+                nameEl.textContent = adminName;
+                logoEl.textContent = adminName.charAt(0).toUpperCase();
+                if (adminName === 'Brodie') {
+                    logoEl.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+                } else {
+                    logoEl.style.background = 'linear-gradient(135deg, var(--accent), var(--accent-hover))';
+                }
+            }
+        }
+
+        initSession();
+
         function logout() {
             localStorage.removeItem('adminPassword');
+            localStorage.removeItem('adminName');
             location.reload();
         }
 
