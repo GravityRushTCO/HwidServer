@@ -6,7 +6,12 @@ const db = require('./database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin_gravity';
+
+// Comptes admin : { nom: motdepasse }
+const ADMIN_ACCOUNTS = {
+    'Gravity': process.env.ADMIN_PASSWORD || 'admin_gravity',
+    'Brodie':  process.env.BRODIE_PASSWORD || 'admin_brodie'
+};
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -26,12 +31,19 @@ app.get('/ping', (req, res) => res.send('OK'));
 // Middleware to check admin password
 const authMiddleware = (req, res, next) => {
     const authHeader = req.headers['authorization'];
-    if (authHeader === ADMIN_PASSWORD) {
+    const found = Object.entries(ADMIN_ACCOUNTS).find(([name, pass]) => pass === authHeader);
+    if (found) {
+        req.adminName = found[0]; // 'Gravity' or 'Brodie'
         next();
     } else {
         res.status(401).json({ error: 'Unauthorized' });
     }
 };
+
+// Endpoint to get current admin identity
+app.get('/api/admin/me', authMiddleware, (req, res) => {
+    res.json({ name: req.adminName });
+});
 
 // Helper to get settings
 const getSettings = (callback) => {
