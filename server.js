@@ -242,8 +242,8 @@ app.post('/api/admin/save', authMiddleware, (req, res) => {
     const expVal = expiresAt ? new Date(expiresAt).toISOString() : null;
 
     db.run(
-        'UPDATE devices SET label = ?, note = ?, expires_at = ?, status = ? WHERE hwid = ?',
-        [label, note, expVal, status, hwid],
+        'UPDATE devices SET label = ?, note = ?, expires_at = ?, status = ?, approved_by = ? WHERE hwid = ?',
+        [label, note, expVal, status, req.adminName, hwid],
         function(err) {
             if (err) return res.status(500).json({ error: err.message });
             res.json({ success: true });
