@@ -783,12 +783,44 @@
 
                 const ipsContainer = document.getElementById('modal-ips');
                 if (data.ips && data.ips.length > 0) {
-                    ipsContainer.innerHTML = data.ips.map(ip => `
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                            <span>${ip.ip}</span>
-                            <span style="color: var(--text-muted);">${new Date(ip.at).toLocaleString()}</span>
+                    ipsContainer.innerHTML = data.ips.map((ip, i) => `
+                        <div style="display: flex; flex-direction: column; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border);">
+                            <div style="display: flex; justify-content: space-between;">
+                                <strong>${ip.ip}</strong>
+                                <span style="color: var(--text-muted); font-size: 11px;">${new Date(ip.at).toLocaleString()}</span>
+                            </div>
+                            <div id="geo-${i}" style="color: var(--text-muted); font-size: 11px; margin-top: 2px;">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 2px;"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                                <em>Recherche de localisation...</em>
+                            </div>
                         </div>
                     `).join('');
+
+                    // Fetch geo info asynchronously for each IP
+                    data.ips.forEach(async (ip, i) => {
+                        const geoEl = document.getElementById(`geo-${i}`);
+                        if (ip.ip === 'Cachée (Admin)') {
+                            geoEl.innerHTML = '<span style="color: var(--success);">🛡️ Anonymat Admin Protégé</span>';
+                            return;
+                        }
+                        try {
+                            const res = await fetch(`https://get.geojs.io/v1/ip/geo/${ip.ip}.json`);
+                            if (res.ok) {
+                                const geo = await res.json();
+                                const city = geo.city || 'Ville inconnue';
+                                const region = geo.region || 'Région inconnue';
+                                const country = geo.country || 'Pays inconnu';
+                                const org = geo.organization || geo.organization_name || 'Opérateur inconnu';
+                                geoEl.innerHTML = `📍 ${city}, ${region} (${country}) &nbsp;&bull;&nbsp; 🏢 ${org}`;
+                                geoEl.style.color = 'var(--text-primary)';
+                            } else {
+                                geoEl.innerText = '⚠️ Impossible de localiser';
+                            }
+                        } catch (e) {
+                            geoEl.innerText = '⚠️ Erreur réseau lors de la localisation';
+                        }
+                    });
+
                 } else {
                     ipsContainer.innerHTML = '<span style="color: var(--text-muted);">Aucune adresse IP enregistrée.</span>';
                 }
