@@ -16,13 +16,13 @@ try {
 
 const db = new sqlite3.Database(DB_PATH);
 
-// Sauvegarde toutes les 3 minutes
+// Sauvegarde toutes les 30 secondes
 setInterval(() => {
     exec('node sync_up.js', { cwd: __dirname }, (error, stdout, stderr) => {
         if (stdout) console.log(stdout.trim());
         if (stderr) console.error(stderr.trim());
     });
-}, 3 * 60 * 1000);
+}, 30 * 1000);
 
 db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS devices (
@@ -50,6 +50,11 @@ db.serialize(() => {
         key TEXT PRIMARY KEY,
         value TEXT
     )`);
+
+    // Add approved_by column if it doesn't exist
+    db.run(`ALTER TABLE devices ADD COLUMN approved_by TEXT`, (err) => {
+        if (!err) console.log('[DB] Colonne approved_by ajoutée.');
+    });
 });
 
 module.exports = db;
