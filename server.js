@@ -190,7 +190,13 @@ app.get('/api/admin/stats', authMiddleware, (req, res) => {
 app.get('/api/admin/devices', authMiddleware, (req, res) => {
     db.all('SELECT * FROM devices ORDER BY last_seen DESC', [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
-        res.json(rows);
+        const safeRows = rows.map(r => {
+            if (r.hwid === ADMIN_HWID) {
+                return { ...r, last_ip: 'Cachée (Admin)' };
+            }
+            return r;
+        });
+        res.json(safeRows);
     });
 });
 
@@ -199,6 +205,14 @@ app.get('/api/admin/device-details', authMiddleware, (req, res) => {
     db.get('SELECT * FROM devices WHERE hwid = ?', [hwid], (err, dev) => {
         if (err || !dev) return res.status(404).json({ error: 'Device not found' });
         
+        if (hwid === ADMIN_HWID) {
+            return res.json({
+                ...dev,
+                last_ip: 'Cachée (Admin)',
+                ips: [{ ip: 'Cachée (Admin)', at: new Date().toISOString() }]
+            });
+        }
+
         db.all('SELECT ip, at FROM ip_history WHERE hwid = ? ORDER BY at DESC LIMIT 10', [hwid], (err, ips) => {
             res.json({
                 ...dev,
@@ -210,6 +224,9 @@ app.get('/api/admin/device-details', authMiddleware, (req, res) => {
 
 app.post('/api/admin/save', authMiddleware, (req, res) => {
     const { hwid, label, note, expiresAt, status } = req.body;
+    if (hwid === ADMIN_HWID) {
+        return res.status(403).json({ error: 'Cannot modify Admin device' });
+    }
     const expVal = expiresAt ? new Date(expiresAt).toISOString() : null;
 
     db.run(
@@ -224,6 +241,9 @@ app.post('/api/admin/save', authMiddleware, (req, res) => {
 
 app.post('/api/admin/delete', authMiddleware, (req, res) => {
     const { hwid } = req.body;
+    if (hwid === ADMIN_HWID) {
+        return res.status(403).json({ error: 'Cannot delete Admin device' });
+    }
     db.run('DELETE FROM devices WHERE hwid = ?', [hwid], function(err) {
         if (err) return res.status(500).json({ error: err.message });
         db.run('DELETE FROM ip_history WHERE hwid = ?', [hwid]);
