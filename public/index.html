@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gravity HWID | Console de Gestion</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #06060c;
+            --bg-surface: #0c0d19;
+            --bg-card: #121324;
+            --border: #1e2038;
+            --border-focus: #4f46e5;
+            
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.15);
+            --success: #10b981;
+            --success-glow: rgba(16, 185, 129, 0.1);
+            --warning: #f59e0b;
+            --warning-glow: rgba(245, 158, 11, 0.1);
+            --danger: #ef4444;
+            --danger-glow: rgba(239, 68, 68, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.03) 0px, transparent 50%);
+        }
+
+        header {
+            border-bottom: 1px solid var(--border);
+            background: rgba(12, 13, 25, 0.7);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .header-content {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-mark {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--primary), #ec4899);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 20px;
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .brand-text h1 {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .brand-text p {
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        main {
+            max-width: 1300px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 32px 24px;
+            flex-grow: 1;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        .stat-card.active .stat-value { color: var(--success); }
+        .stat-card.pending .stat-value { color: var(--warning); }
+        .stat-card.banned .stat-value { color: var(--danger); }
+
+        .dashboard-container {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .control-bar {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .search-wrapper {
+            position: relative;
+            flex-grow: 1;
+            max-width: 450px;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--bg-base);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+
+        .btn {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background: rgba(12, 13, 25, 0.4);
+            padding: 16px 24px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        .device-title {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .device-sub {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 99px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .badge.allowed {
+            background: var(--success-glow);
+            color: var(--success);
+        }
+
+        .badge.pending {
+            background: var(--warning-glow);
+            color: var(--warning);
+        }
+
+        .badge.banned {
+            background: var(--danger-glow);
+            color: var(--danger);
+        }
+
+        .badge.expired {
+            background: rgba(255,255,255,0.05);
+            color: var(--text-muted);
+        }
+
+        .ip-info {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+        }
+
+        .actions-cell {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:hover {
+            color: var(--text-primary);
+            background: var(--border);
+        }
+
+        /* Modal styling */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            width: 100%;
+            max-width: 600px;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            animation: modalSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes modalSlide {
+            from { transform: translateY(10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .form-control {
+            background: var(--bg-base);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 16px;
+            padding-right: 40px;
+        }
+
+        .modal-footer {
+            padding: 20px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            background: rgba(12,13,25,0.4);
+        }
+
+        .footer-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 12px 24px;
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 14px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 200;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .empty-state {
+            padding: 60px 24px;
+            text-align: center;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .empty-state svg {
+            width: 48px;
+            height: 48px;
+            stroke: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-content">
+            <div class="brand">
+                <div class="logo-mark">G</div>
+                <div class="brand-text">
+                    <h1>Gravity HWID</h1>
+                    <p>Console de Gestion & Licences</p>
+                </div>
+            </div>
+            <button class="btn btn-secondary" onclick="logout()">Déconnexion</button>
+        </div>
+    </header>
+
+    <main>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-label">Total Appareils</span>
+                <span id="stat-total" class="stat-value">0</span>
+            </div>
+            <div class="stat-card active">
+                <span class="stat-label">Autorisés</span>
+                <span id="stat-active" class="stat-value">0</span>
+            </div>
+            <div class="stat-card pending">
+                <span class="stat-label">En attente</span>
+                <span id="stat-pending" class="stat-value">0</span>
+            </div>
+            <div class="stat-card banned">
+                <span class="stat-label">Bannis</span>
+                <span id="stat-banned" class="stat-value">0</span>
+            </div>
+        </div>
+
+        <div class="dashboard-container">
+            <div class="control-bar">
+                <div class="search-wrapper">
+                    <input type="text" id="search-input" class="search-input" placeholder="Rechercher par HWID ou Label..." oninput="filterDevices()">
+                </div>
+                <button class="btn" onclick="fetchStatsAndDevices()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+                    Actualiser
+                </button>
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Appareil</th>
+                            <th>Dernière IP</th>
+                            <th>Statut</th>
+                            <th>Expiration</th>
+                            <th>Dernière Connexion</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="device-table-body">
+                        <!-- Content loaded dynamically -->
+                    </tbody>
+                </table>
+                <div id="empty-state" class="empty-state" style="display: none;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                    <div>
+                        <h3 style="color: var(--text-primary); margin-bottom: 4px;">Aucun appareil trouvé</h3>
+                        <p>Les nouveaux clients apparaîtront ici dès qu'ils lanceront le mod menu.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Détails & Edition -->
+    <div class="modal-overlay" id="device-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="font-weight: 700;">Détails de l'appareil</h3>
+                <button class="icon-btn" onclick="closeModal()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="modal-hwid">
+                
+                <div class="form-group">
+                    <label>Nom / Label</label>
+                    <input type="text" id="modal-label" class="form-control" placeholder="ex: Client VIP - Jean">
+                </div>
+
+                <div class="form-group">
+                    <label>Statut</label>
+                    <select id="modal-status" class="form-control">
+                        <option value="allowed">Autorisé</option>
+                        <option value="pending">En attente</option>
+                        <option value="banned">Banni</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Expiration de Licence</label>
+                    <input type="datetime-local" id="modal-expires" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label>Notes</label>
+                    <input type="text" id="modal-note" class="form-control" placeholder="Informations complémentaires...">
+                </div>
+
+                <div class="form-group">
+                    <label>Historique récent des IP</label>
+                    <div id="modal-ips" style="max-height: 120px; overflow-y: auto; background: var(--bg-base); border: 1px solid var(--border); border-radius: 10px; padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 13px;">
+                        <!-- IP history injected -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" style="background: var(--danger-glow); border-color: rgba(239,68,68,0.2); color: var(--danger);" onclick="deleteDevice()">Supprimer</button>
+                <div class="footer-actions">
+                    <button class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+                    <button class="btn" onclick="saveDevice()">Sauvegarder</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Message</div>
+
+    <script>
+        let adminPassword = localStorage.getItem('adminPassword');
+        let allDevices = [];
+
+        if (!adminPassword) {
+            adminPassword = prompt('Veuillez entrer le mot de passe gestionnaire :');
+            if (adminPassword) {
+                localStorage.setItem('adminPassword', adminPassword);
+            } else {
+                alert('Accès refusé.');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('adminPassword');
+            location.reload();
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        async function fetchStatsAndDevices() {
+            try {
+                // Fetch Stats
+                const statsRes = await fetch('/api/admin/stats', {
+                    headers: { 'Authorization': adminPassword }
+                });
+                if (statsRes.status === 401) return logout();
+                const stats = await statsRes.json();
+                document.getElementById('stat-total').textContent = stats.total;
+                document.getElementById('stat-active').textContent = stats.active;
+                document.getElementById('stat-pending').textContent = stats.pending;
+                document.getElementById('stat-banned').textContent = stats.banned;
+
+                // Fetch Devices
+                const devRes = await fetch('/api/admin/devices', {
+                    headers: { 'Authorization': adminPassword }
+                });
+                allDevices = await devRes.json();
+                renderDevices(allDevices);
+            } catch (err) {
+                showToast('Erreur lors de la récupération des données');
+            }
+        }
+
+        function renderDevices(devices) {
+            const tbody = document.getElementById('device-table-body');
+            const emptyState = document.getElementById('empty-state');
+            tbody.innerHTML = '';
+
+            if (devices.length === 0) {
+                emptyState.style.display = 'flex';
+                return;
+            }
+            emptyState.style.display = 'none';
+
+            devices.forEach(d => {
+                const tr = document.createElement('tr');
+                
+                let expiryText = 'Jamais';
+                let expired = false;
+                if (d.expires_at) {
+                    const expDate = new Date(d.expires_at);
+                    expiryText = expDate.toLocaleDateString() + ' ' + expDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    if (Date.now() > expDate.getTime()) {
+                        expired = true;
+                    }
+                }
+
+                let badgeClass = d.status;
+                let badgeText = d.status === 'allowed' ? 'Autorisé' : d.status === 'pending' ? 'En attente' : 'Banni';
+                if (d.status === 'allowed' && expired) {
+                    badgeClass = 'expired';
+                    badgeText = 'Expiré';
+                }
+
+                tr.innerHTML = `
+                    <td>
+                        <div class="device-title">${d.label || 'Sans Nom'}</div>
+                        <div class="device-sub">${d.hwid}</div>
+                    </td>
+                    <td class="ip-info">${d.last_ip || 'Aucune'}</td>
+                    <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+                    <td>${expiryText}</td>
+                    <td>${d.last_seen ? new Date(d.last_seen).toLocaleString() : 'Jamais'}</td>
+                    <td>
+                        <button class="icon-btn" onclick="openDetails('${d.hwid}')">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterDevices() {
+            const q = document.getElementById('search-input').value.toLowerCase();
+            const filtered = allDevices.filter(d => 
+                d.hwid.toLowerCase().includes(q) || 
+                (d.label && d.label.toLowerCase().includes(q))
+            );
+            renderDevices(filtered);
+        }
+
+        async function openDetails(hwid) {
+            try {
+                const res = await fetch(`/api/admin/device-details?hwid=${encodeURIComponent(hwid)}`, {
+                    headers: { 'Authorization': adminPassword }
+                });
+                const data = await res.json();
+                
+                document.getElementById('modal-hwid').value = data.hwid;
+                document.getElementById('modal-label').value = data.label || '';
+                document.getElementById('modal-status').value = data.status;
+                
+                if (data.expires_at) {
+                    const localDt = new Date(data.expires_at);
+                    const formatted = new Date(localDt.getTime() - localDt.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+                    document.getElementById('modal-expires').value = formatted;
+                } else {
+                    document.getElementById('modal-expires').value = '';
+                }
+                
+                document.getElementById('modal-note').value = data.note || '';
+
+                const ipsContainer = document.getElementById('modal-ips');
+                if (data.ips && data.ips.length > 0) {
+                    ipsContainer.innerHTML = data.ips.map(ip => `
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                            <span>${ip.ip}</span>
+                            <span style="color: var(--text-muted);">${new Date(ip.at).toLocaleString()}</span>
+                        </div>
+                    `).join('');
+                } else {
+                    ipsContainer.innerHTML = '<span style="color: var(--text-muted);">Aucune adresse IP enregistrée.</span>';
+                }
+
+                document.getElementById('device-modal').classList.add('open');
+            } catch (err) {
+                showToast('Erreur lors du chargement des détails');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('device-modal').classList.remove('open');
+        }
+
+        async function saveDevice() {
+            const hwid = document.getElementById('modal-hwid').value;
+            const label = document.getElementById('modal-label').value;
+            const status = document.getElementById('modal-status').value;
+            const expiresAt = document.getElementById('modal-expires').value;
+            const note = document.getElementById('modal-note').value;
+
+            try {
+                const res = await fetch('/api/admin/save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': adminPassword
+                    },
+                    body: JSON.stringify({ hwid, label, note, expiresAt, status })
+                });
+
+                if (res.ok) {
+                    showToast('Modifications enregistrées');
+                    closeModal();
+                    fetchStatsAndDevices();
+                } else {
+                    showToast('Erreur lors de la sauvegarde');
+                }
+            } catch (err) {
+                showToast('Erreur de communication');
+            }
+        }
+
+        async function deleteDevice() {
+            const hwid = document.getElementById('modal-hwid').value;
+            if (!confirm('Voulez-vous vraiment supprimer cet appareil ?')) return;
+
+            try {
+                const res = await fetch('/api/admin/delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': adminPassword
+                    },
+                    body: JSON.stringify({ hwid })
+                });
+
+                if (res.ok) {
+                    showToast('Appareil supprimé');
+                    closeModal();
+                    fetchStatsAndDevices();
+                } else {
+                    showToast('Erreur lors de la suppression');
+                }
+            } catch (err) {
+                showToast('Erreur de communication');
+            }
+        }
+
+        // Init
+        if (adminPassword) {
+            fetchStatsAndDevices();
+            setInterval(fetchStatsAndDevices, 15000);
+        }
+    </script>
+</body>
+</html>
