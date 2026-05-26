@@ -215,7 +215,7 @@ app.get('/api/store/status', (req, res) => {
         
         let downloadLink = null;
         if (row.status === 'approved') {
-            downloadLink = 'https://ton-lien-mega-ou-mediafire.com/V10_FUSION.apk'; // TODO: Update this link
+            downloadLink = 'https://mega.nz/file/T1hg3aBA#Ny_o8pxNj1sKtKpAsW1m8gDWpOFblyr4vFmdHrMISKQ';
         }
         res.json({ status: row.status, method: row.method, downloadLink });
     });
