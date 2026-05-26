@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gravity HWID | Console de Gestion</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             --bg-base: #06060c;
@@ -14,7 +17,7 @@
             --bg-card: #121324;
             --border: #1e2038;
             --border-focus: #4f46e5;
-            
+
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
             --text-muted: #64748b;
@@ -43,7 +46,7 @@
             display: flex;
             flex-direction: column;
             overflow-x: hidden;
-            background-image: 
+            background-image:
                 radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%),
                 radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.03) 0px, transparent 50%);
         }
@@ -145,9 +148,17 @@
             letter-spacing: -0.03em;
         }
 
-        .stat-card.active .stat-value { color: var(--success); }
-        .stat-card.pending .stat-value { color: var(--warning); }
-        .stat-card.banned .stat-value { color: var(--danger); }
+        .stat-card.active .stat-value {
+            color: var(--success);
+        }
+
+        .stat-card.pending .stat-value {
+            color: var(--warning);
+        }
+
+        .stat-card.banned .stat-value {
+            color: var(--danger);
+        }
 
         .dashboard-container {
             background: var(--bg-surface);
@@ -296,7 +307,7 @@
         }
 
         .badge.expired {
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.05);
             color: var(--text-muted);
         }
 
@@ -354,8 +365,15 @@
         }
 
         @keyframes modalSlide {
-            from { transform: translateY(10px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+            from {
+                transform: translateY(10px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         .modal-header {
@@ -417,7 +435,7 @@
             border-top: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
-            background: rgba(12,13,25,0.4);
+            background: rgba(12, 13, 25, 0.4);
         }
 
         .footer-actions {
@@ -441,7 +459,7 @@
             opacity: 0;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             z-index: 200;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
         }
 
         .toast.show {
@@ -466,6 +484,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <header>
@@ -479,8 +498,11 @@
             </div>
             <div style="display: flex; align-items: center; gap: 16px;">
                 <div style="text-align: right;">
-                    <div id="admin-name-display" style="font-weight: 700; font-size: 14px; color: var(--text-primary);">...</div>
-                    <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Administrateur</div>
+                    <div id="admin-name-display" style="font-weight: 700; font-size: 14px; color: var(--text-primary);">
+                        ...</div>
+                    <div
+                        style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">
+                        Administrateur</div>
                 </div>
                 <button class="btn btn-secondary" onclick="logout()">D&eacute;connexion</button>
             </div>
@@ -505,16 +527,13 @@
                 <span class="stat-label">Bannis</span>
                 <span id="stat-banned" class="stat-value">0</span>
             </div>
-            <div id="stat-orders-card" class="stat-card pending">
-                <span class="stat-label">Commandes en attente</span>
-                <span id="stat-orders" class="stat-value" style="color: #ec4899;">0</span>
-            </div>
         </div>
 
         <!-- Global Settings Section -->
         <div class="dashboard-container" style="margin-bottom: 24px; padding: 20px 24px;">
             <h3 style="font-weight: 700; margin-bottom: 16px;">Paramètres d'Inscription Globaux</h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; align-items: end;">
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; align-items: end;">
                 <div class="form-group">
                     <label>Autoriser les nouvelles inscriptions</label>
                     <select id="settings-allow-reg" class="form-control" style="background-color: var(--bg-base);">
@@ -534,7 +553,8 @@
                     <input type="number" id="settings-trial-days" class="form-control" min="0" placeholder="ex: 3">
                 </div>
                 <div>
-                    <button class="btn" onclick="saveGlobalSettings()" style="width: 100%; justify-content: center;">Sauvegarder les Paramètres</button>
+                    <button class="btn" onclick="saveGlobalSettings()"
+                        style="width: 100%; justify-content: center;">Sauvegarder les Paramètres</button>
                 </div>
             </div>
         </div>
@@ -542,17 +562,25 @@
         <div class="dashboard-container">
             <div class="control-bar">
                 <div class="search-wrapper" style="display: flex; gap: 12px; flex-wrap: wrap;">
-                    <select id="filter-status" class="form-control" style="background: var(--bg-base); width: auto;" onchange="filterDevices()">
+                    <select id="filter-status" class="form-control" style="background: var(--bg-base); width: auto;"
+                        onchange="filterDevices()">
                         <option value="all">Toutes les listes</option>
                         <option value="fusion">🔷 FUSION uniquement</option>
                         <option value="pending">En attente (Communs)</option>
                         <option value="mine">Mes Validations</option>
                         <option value="other">Validations de l'autre Admin</option>
                     </select>
-                    <input type="text" id="search-input" class="search-input" style="flex-grow:1; min-width: 200px;" placeholder="Rechercher par HWID ou Label..." oninput="filterDevices()">
+                    <input type="text" id="search-input" class="search-input" style="flex-grow:1; min-width: 200px;"
+                        placeholder="Rechercher par HWID ou Label..." oninput="filterDevices()">
                 </div>
                 <button class="btn" onclick="fetchStatsAndDevices()">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                        <path d="M3 3v5h5" />
+                        <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                        <path d="M16 16h5v5" />
+                    </svg>
                     Actualiser
                 </button>
             </div>
@@ -576,39 +604,17 @@
                     </tbody>
                 </table>
                 <div id="empty-state" class="empty-state" style="display: none;">
-                    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M16 16s-1.5-2-4-2-4 2-4 2" />
+                        <line x1="9" y1="9" x2="9.01" y2="9" />
+                        <line x1="15" y1="9" x2="15.01" y2="9" />
+                    </svg>
                     <div>
                         <h3 style="color: var(--text-primary); margin-bottom: 4px;">Aucun appareil trouvé</h3>
                         <p>Les nouveaux clients apparaîtront ici dès qu'ils lanceront le mod menu.</p>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Section Commandes (Boutique) -->
-        <div id="store-section" class="dashboard-container" style="margin-top: 24px;">
-            <div class="control-bar" style="background: rgba(236, 72, 153, 0.05);">
-                <h3 style="font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                    🛒 Commandes Boutique (En Attente)
-                </h3>
-            </div>
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>@ Telegram</th>
-                            <th>Méthode</th>
-                            <th>Preuve / Code</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="orders-table-body">
-                        <!-- Orders loaded dynamically -->
-                    </tbody>
-                </table>
-                <div id="orders-empty-state" class="empty-state" style="display: none; padding: 30px;">
-                    <div style="color: var(--text-muted);">Aucune nouvelle commande en attente.</div>
                 </div>
             </div>
         </div>
@@ -620,12 +626,16 @@
             <div class="modal-header">
                 <h3 style="font-weight: 700;">Détails de l'appareil</h3>
                 <button class="icon-btn" onclick="closeModal()">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
                 </button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="modal-hwid">
-                
+
                 <div class="form-group">
                     <label>Nom / Label</label>
                     <input type="text" id="modal-label" class="form-control" placeholder="ex: Client VIP - Jean">
@@ -643,187 +653,192 @@
                 <div class="form-group">
                     <label>Expiration de Licence</label>
                     <div style="display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
-                        <button type="button" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; height: auto;" onclick="setExpiryDays(5)">+5 Jours</button>
-                        <button type="button" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; height: auto;" onclick="setExpiryDays(15)">+15 Jours</button>
-                        <button type="button" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; height: auto;" onclick="setExpiryDays(30)">+30 Jours</button>
-                        <button type="button" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; height: auto; background: var(--success-glow); color: var(--success); border-color: rgba(16,185,129,0.2);" onclick="setExpiryDays(0)">Infini (Jamais)</button>
+                        <button type="button" class="btn btn-secondary"
+                            style="padding: 4px 10px; font-size: 12px; height: auto;" onclick="setExpiryDays(5)">+5
+                            Jours</button>
+                        <button type="button" class="btn btn-secondary"
+                            style="padding: 4px 10px; font-size: 12px; height: auto;" onclick="setExpiryDays(15)">+15
+                            Jours</button>
+                        <button type="button" class="btn btn-secondary"
+                            style="padding: 4px 10px; font-size: 12px; height: auto;" onclick="setExpiryDays(30)">+30
+                            Jours</button>
+                        <button type="button" class="btn btn-secondary"
+                            style="padding: 4px 10px; font-size: 12px; height: auto; background: var(--success-glow); color: var(--success); border-color: rgba(16,185,129,0.2);"
+                            onclick="setExpiryDays(0)">Infini (Jamais)</button>
                     </div>
                     <input type="datetime-local" id="modal-expires" class="form-control">
                 </div>
 
                 <div class="form-group">
                     <label>Notes</label>
-                    <input type="text" id="modal-note" class="form-control" placeholder="Informations complémentaires...">
+                    <input type="text" id="modal-note" class="form-control"
+                        placeholder="Informations complémentaires...">
                 </div>
 
                 <div class="form-group">
                     <label>Historique récent des IP</label>
-                    <div id="modal-ips" style="max-height: 120px; overflow-y: auto; background: var(--bg-base); border: 1px solid var(--border); border-radius: 10px; padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 13px;">
+                    <div id="modal-ips"
+                        style="max-height: 120px; overflow-y: auto; background: var(--bg-base); border: 1px solid var(--border); border-radius: 10px; padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 13px;">
                         <!-- IP history injected -->
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button id="modal-btn-delete" class="btn btn-secondary" style="background: var(--danger-glow); border-color: rgba(239,68,68,0.2); color: var(--danger);" onclick="deleteDevice()">Supprimer</button>
-                <div class="footer-actions">
-                    <button class="btn btn-secondary" onclick="closeModal()">Annuler</button>
-                    <button id="modal-btn-save" class="btn" onclick="saveDevice()">Sauvegarder</button>
+                <div class="modal-footer">
+                    <button id="modal-btn-delete" class="btn btn-secondary"
+                        style="background: var(--danger-glow); border-color: rgba(239,68,68,0.2); color: var(--danger);"
+                        onclick="deleteDevice()">Supprimer</button>
+                    <div class="footer-actions">
+                        <button class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+                        <button id="modal-btn-save" class="btn" onclick="saveDevice()">Sauvegarder</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="toast" id="toast">Message</div>
+        <div class="toast" id="toast">Message</div>
 
-    <script>
-        let adminPassword = localStorage.getItem('adminPassword');
-        let adminName = localStorage.getItem('adminName') || '';
-        let allDevices = [];
+        <script>
+            let adminPassword = localStorage.getItem('adminPassword');
+            let adminName = localStorage.getItem('adminName') || '';
+            let allDevices = [];
 
-        async function initSession() {
-            if (!adminPassword) {
-                adminPassword = prompt('Mot de passe administrateur :');
-                if (!adminPassword) { alert('Accès refusé.'); return; }
-                localStorage.setItem('adminPassword', adminPassword);
-            }
-            // Fetch identity from server
-            try {
-                const res = await fetch('/api/admin/me', {
-                    headers: { 'Authorization': adminPassword }
-                });
-                if (res.status === 401) {
-                    localStorage.removeItem('adminPassword');
-                    localStorage.removeItem('adminName');
-                    alert('Mot de passe incorrect.');
-                    location.reload();
-                    return;
+            async function initSession() {
+                if (!adminPassword) {
+                    adminPassword = prompt('Mot de passe administrateur :');
+                    if (!adminPassword) { alert('Accès refusé.'); return; }
+                    localStorage.setItem('adminPassword', adminPassword);
                 }
-                const data = await res.json();
-                adminName = data.name;
-                localStorage.setItem('adminName', adminName);
-                updateAdminUI();
-                fetchStatsAndDevices();
-            } catch(e) {
-                fetchStatsAndDevices();
-            }
-        }
-
-        function updateAdminUI() {
-            const nameEl = document.getElementById('admin-name-display');
-            const logoEl = document.getElementById('logo-mark');
-            if (adminName) {
-                nameEl.textContent = adminName;
-                logoEl.textContent = adminName.charAt(0).toUpperCase();
-                if (adminName === 'Brodie') {
-                    logoEl.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
-                    document.getElementById('store-section').style.display = 'none';
-                    document.getElementById('stat-orders-card').style.display = 'none';
-                } else {
-                    logoEl.style.background = 'linear-gradient(135deg, var(--accent), var(--accent-hover))';
-                    document.getElementById('store-section').style.display = 'block';
-                    document.getElementById('stat-orders-card').style.display = 'flex';
+                // Fetch identity from server
+                try {
+                    const res = await fetch('/api/admin/me', {
+                        headers: { 'Authorization': adminPassword }
+                    });
+                    if (res.status === 401) {
+                        localStorage.removeItem('adminPassword');
+                        localStorage.removeItem('adminName');
+                        alert('Mot de passe incorrect.');
+                        location.reload();
+                        return;
+                    }
+                    const data = await res.json();
+                    adminName = data.name;
+                    localStorage.setItem('adminName', adminName);
+                    updateAdminUI();
+                    fetchStatsAndDevices();
+                } catch (e) {
+                    fetchStatsAndDevices();
                 }
             }
-        }
 
-        initSession();
-
-        function logout() {
-            localStorage.removeItem('adminPassword');
-            localStorage.removeItem('adminName');
-            location.reload();
-        }
-
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            toast.textContent = msg;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
-        }
-
-        function setExpiryDays(days) {
-            const input = document.getElementById('modal-expires');
-            if (days === 0) {
-                input.value = '';
-            } else {
-                const d = new Date();
-                d.setDate(d.getDate() + days);
-                d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-                input.value = d.toISOString().slice(0, 16);
-            }
-        }
-
-        async function fetchStatsAndDevices() {
-            try {
-                // Fetch Stats
-                const statsRes = await fetch('/api/admin/stats', {
-                    headers: { 'Authorization': adminPassword }
-                });
-                if (statsRes.status === 401) return logout();
-                const stats = await statsRes.json();
-                document.getElementById('stat-total').textContent = stats.total;
-                document.getElementById('stat-active').textContent = stats.active;
-                document.getElementById('stat-pending').textContent = stats.pending;
-                document.getElementById('stat-banned').textContent = stats.banned;
-                document.getElementById('stat-orders').textContent = stats.pendingOrders || 0;
-
-                // Fetch Settings
-                const settingsRes = await fetch('/api/admin/settings', {
-                    headers: { 'Authorization': adminPassword }
-                });
-                if (settingsRes.ok) {
-                    const settings = await settingsRes.json();
-                    document.getElementById('settings-allow-reg').value = String(settings.allowRegistration);
-                    document.getElementById('settings-auto-approve').value = String(settings.autoApprove);
-                    document.getElementById('settings-trial-days').value = settings.trialDays;
-                }
-
-                // Fetch Devices
-                const devRes = await fetch('/api/admin/devices', {
-                    headers: { 'Authorization': adminPassword }
-                });
-                allDevices = await devRes.json();
-                renderDevices(allDevices);
-                
-                // Fetch Orders
-                fetchOrders();
-            } catch (err) {
-                showToast('Erreur lors de la récupération des données');
-            }
-        }
-
-        function renderDevices(devices) {
-            const tbody = document.getElementById('device-table-body');
-            const emptyState = document.getElementById('empty-state');
-            tbody.innerHTML = '';
-
-            if (devices.length === 0) {
-                emptyState.style.display = 'flex';
-                return;
-            }
-            emptyState.style.display = 'none';
-
-            devices.forEach(d => {
-                const tr = document.createElement('tr');
-                
-                let expiryText = 'Jamais';
-                let expired = false;
-                if (d.expires_at) {
-                    const expDate = new Date(d.expires_at);
-                    expiryText = expDate.toLocaleDateString() + ' ' + expDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                    if (Date.now() > expDate.getTime()) {
-                        expired = true;
+            function updateAdminUI() {
+                const nameEl = document.getElementById('admin-name-display');
+                const logoEl = document.getElementById('logo-mark');
+                if (adminName) {
+                    nameEl.textContent = adminName;
+                    logoEl.textContent = adminName.charAt(0).toUpperCase();
+                    if (adminName === 'Brodie') {
+                        logoEl.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+                    } else {
+                        logoEl.style.background = 'linear-gradient(135deg, var(--accent), var(--accent-hover))';
                     }
                 }
+            }
 
-                let badgeClass = d.status;
-                let badgeText = d.status === 'allowed' ? 'Autorisé' : d.status === 'pending' ? 'En attente' : 'Banni';
-                if (d.status === 'allowed' && expired) {
-                    badgeClass = 'expired';
-                    badgeText = 'Expiré';
+            initSession();
+
+            function logout() {
+                localStorage.removeItem('adminPassword');
+                localStorage.removeItem('adminName');
+                location.reload();
+            }
+
+            function showToast(msg) {
+                const toast = document.getElementById('toast');
+                toast.textContent = msg;
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 3000);
+            }
+
+            function setExpiryDays(days) {
+                const input = document.getElementById('modal-expires');
+                if (days === 0) {
+                    input.value = '';
+                } else {
+                    const d = new Date();
+                    d.setDate(d.getDate() + days);
+                    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+                    input.value = d.toISOString().slice(0, 16);
                 }
+            }
 
-                tr.innerHTML = `
+            async function fetchStatsAndDevices() {
+                try {
+                    // Fetch Stats
+                    const statsRes = await fetch('/api/admin/stats', {
+                        headers: { 'Authorization': adminPassword }
+                    });
+                    if (statsRes.status === 401) return logout();
+                    const stats = await statsRes.json();
+                    document.getElementById('stat-total').textContent = stats.total;
+                    document.getElementById('stat-active').textContent = stats.active;
+                    document.getElementById('stat-pending').textContent = stats.pending;
+                    document.getElementById('stat-banned').textContent = stats.banned;
+
+                    // Fetch Settings
+                    const settingsRes = await fetch('/api/admin/settings', {
+                        headers: { 'Authorization': adminPassword }
+                    });
+                    if (settingsRes.ok) {
+                        const settings = await settingsRes.json();
+                        document.getElementById('settings-allow-reg').value = String(settings.allowRegistration);
+                        document.getElementById('settings-auto-approve').value = String(settings.autoApprove);
+                        document.getElementById('settings-trial-days').value = settings.trialDays;
+                    }
+
+                    // Fetch Devices
+                    const devRes = await fetch('/api/admin/devices', {
+                        headers: { 'Authorization': adminPassword }
+                    });
+                    allDevices = await devRes.json();
+                    renderDevices(allDevices);
+                } catch (err) {
+                    showToast('Erreur lors de la récupération des données');
+                }
+            }
+
+            function renderDevices(devices) {
+                const tbody = document.getElementById('device-table-body');
+                const emptyState = document.getElementById('empty-state');
+                tbody.innerHTML = '';
+
+                if (devices.length === 0) {
+                    emptyState.style.display = 'flex';
+                    return;
+                }
+                emptyState.style.display = 'none';
+
+                devices.forEach(d => {
+                    const tr = document.createElement('tr');
+
+                    let expiryText = 'Jamais';
+                    let expired = false;
+                    if (d.expires_at) {
+                        const expDate = new Date(d.expires_at);
+                        expiryText = expDate.toLocaleDateString() + ' ' + expDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        if (Date.now() > expDate.getTime()) {
+                            expired = true;
+                        }
+                    }
+
+                    let badgeClass = d.status;
+                    let badgeText = d.status === 'allowed' ? 'Autorisé' : d.status === 'pending' ? 'En attente' : 'Banni';
+                    if (d.status === 'allowed' && expired) {
+                        badgeClass = 'expired';
+                        badgeText = 'Expiré';
+                    }
+
+                    tr.innerHTML = `
                     <td>
                         <div class="device-title">${d.label || 'Sans Nom'}</div>
                         <div class="device-sub">${d.hwid}</div>
@@ -845,114 +860,56 @@
                         </button>
                     </td>
                 `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        async function fetchOrders() {
-            try {
-                const res = await fetch('/api/admin/orders', {
-                    headers: { 'Authorization': adminPassword }
+                    tbody.appendChild(tr);
                 });
-                if (res.status === 401) return;
-                const orders = await res.json();
-                
-                const pendingOrders = orders.filter(o => o.status === 'pending');
-                const tbody = document.getElementById('orders-table-body');
-                const empty = document.getElementById('orders-empty-state');
-                
-                tbody.innerHTML = '';
-                if (pendingOrders.length === 0) {
-                    empty.style.display = 'flex';
-                } else {
-                    empty.style.display = 'none';
-                    pendingOrders.forEach(o => {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td style="color:var(--text-muted); font-size:12px;">${new Date(o.created_at).toLocaleString()}</td>
-                            <td style="font-family:monospace; font-weight:bold;">${o.hwid}</td>
-                            <td><span class="badge" style="background:rgba(255,255,255,0.1);">${o.method.toUpperCase()}</span></td>
-                            <td style="font-family:monospace; color:var(--primary);">${o.proof}</td>
-                            <td>
-                                <button class="btn" style="padding: 6px 12px; font-size:12px; background:#10b981;" onclick="handleOrder(${o.id}, 'approve', '${o.hwid}')">✅ Valider Paiement</button>
-                                <button class="btn btn-secondary" style="padding: 6px 12px; font-size:12px;" onclick="handleOrder(${o.id}, 'reject', '${o.hwid}')">❌ Refuser</button>
-                            </td>
-                        `;
-                        tbody.appendChild(tr);
+            }
+
+            function filterDevices() {
+                const q = document.getElementById('search-input').value.toLowerCase();
+                const filterType = document.getElementById('filter-status').value;
+
+                let filtered = allDevices.filter(d =>
+                    d.hwid.toLowerCase().includes(q) ||
+                    (d.label && d.label.toLowerCase().includes(q))
+                );
+
+                if (filterType === 'fusion') {
+                    filtered = filtered.filter(d => d.app_source === 'FUSION');
+                } else if (filterType === 'pending') {
+                    filtered = filtered.filter(d => d.status === 'pending');
+                } else if (filterType === 'mine') {
+                    filtered = filtered.filter(d => d.status === 'allowed' && d.approved_by === adminName);
+                } else if (filterType === 'other') {
+                    filtered = filtered.filter(d => d.status === 'allowed' && d.approved_by && d.approved_by !== adminName);
+                }
+
+                renderDevices(filtered);
+            }
+
+            async function openDetails(hwid) {
+                try {
+                    const res = await fetch(`/api/admin/device-details?hwid=${encodeURIComponent(hwid)}`, {
+                        headers: { 'Authorization': adminPassword }
                     });
-                }
-            } catch (e) {
-                console.error('Error fetching orders:', e);
-            }
-        }
+                    const data = await res.json();
 
-        async function handleOrder(id, action, hwid) {
-            if (!confirm(`Êtes-vous sûr de vouloir ${action === 'approve' ? 'VALIDER' : 'REFUSER'} cette commande ?`)) return;
-            
-            try {
-                const res = await fetch('/api/admin/orders/action', {
-                    method: 'POST',
-                    headers: { 
-                        'Authorization': adminPassword,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ id, action, hwid })
-                });
-                if (res.ok) {
-                    showToast(`Commande ${action === 'approve' ? 'approuvée' : 'refusée'} avec succès.`, 'success');
-                    fetchStatsAndDevices();
-                }
-            } catch (e) {
-                showToast('Erreur lors du traitement de la commande.', 'error');
-            }
-        }
+                    document.getElementById('modal-hwid').value = data.hwid;
+                    document.getElementById('modal-label').value = data.label || '';
+                    document.getElementById('modal-status').value = data.status;
 
-        function filterDevices() {
-            const q = document.getElementById('search-input').value.toLowerCase();
-            const filterType = document.getElementById('filter-status').value;
-            
-            let filtered = allDevices.filter(d => 
-                d.hwid.toLowerCase().includes(q) || 
-                (d.label && d.label.toLowerCase().includes(q))
-            );
+                    if (data.expires_at) {
+                        const localDt = new Date(data.expires_at);
+                        const formatted = new Date(localDt.getTime() - localDt.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+                        document.getElementById('modal-expires').value = formatted;
+                    } else {
+                        document.getElementById('modal-expires').value = '';
+                    }
 
-            if (filterType === 'fusion') {
-                filtered = filtered.filter(d => d.app_source === 'FUSION');
-            } else if (filterType === 'pending') {
-                filtered = filtered.filter(d => d.status === 'pending');
-            } else if (filterType === 'mine') {
-                filtered = filtered.filter(d => d.status === 'allowed' && d.approved_by === adminName);
-            } else if (filterType === 'other') {
-                filtered = filtered.filter(d => d.status === 'allowed' && d.approved_by && d.approved_by !== adminName);
-            }
+                    document.getElementById('modal-note').value = data.note || '';
 
-            renderDevices(filtered);
-        }
-
-        async function openDetails(hwid) {
-            try {
-                const res = await fetch(`/api/admin/device-details?hwid=${encodeURIComponent(hwid)}`, {
-                    headers: { 'Authorization': adminPassword }
-                });
-                const data = await res.json();
-                
-                document.getElementById('modal-hwid').value = data.hwid;
-                document.getElementById('modal-label').value = data.label || '';
-                document.getElementById('modal-status').value = data.status;
-                
-                if (data.expires_at) {
-                    const localDt = new Date(data.expires_at);
-                    const formatted = new Date(localDt.getTime() - localDt.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-                    document.getElementById('modal-expires').value = formatted;
-                } else {
-                    document.getElementById('modal-expires').value = '';
-                }
-                
-                document.getElementById('modal-note').value = data.note || '';
-
-                const ipsContainer = document.getElementById('modal-ips');
-                if (data.ips && data.ips.length > 0) {
-                    ipsContainer.innerHTML = data.ips.map((ip, i) => `
+                    const ipsContainer = document.getElementById('modal-ips');
+                    if (data.ips && data.ips.length > 0) {
+                        ipsContainer.innerHTML = data.ips.map((ip, i) => `
                         <div style="display: flex; flex-direction: column; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border);">
                             <div style="display: flex; justify-content: space-between;">
                                 <strong>${ip.ip}</strong>
@@ -965,152 +922,152 @@
                         </div>
                     `).join('');
 
-                    // Fetch geo info asynchronously for each IP
-                    data.ips.forEach(async (ip, i) => {
-                        const geoEl = document.getElementById(`geo-${i}`);
-                        if (ip.ip === 'Cachée (Admin)') {
-                            geoEl.innerHTML = '<span style="color: var(--success);">🛡️ Anonymat Admin Protégé</span>';
-                            return;
-                        }
-                        try {
-                            const actualIp = ip.ip.split(',')[0].trim();
-                            const res = await fetch(`https://ipwho.is/${actualIp}`);
-                            if (res.ok) {
-                                const geo = await res.json();
-                                if (geo.success) {
-                                    const city = geo.city || 'Ville inconnue';
-                                    const region = geo.region || 'Région inconnue';
-                                    const country = geo.country || 'Pays inconnu';
-                                    const org = (geo.connection && (geo.connection.org || geo.connection.isp)) || 'Opérateur inconnu';
-                                    geoEl.innerHTML = `📍 ${city}, ${region} (${country}) &nbsp;&bull;&nbsp; 🏢 ${org}`;
-                                    geoEl.style.color = 'var(--text-primary)';
-                                } else {
-                                    geoEl.innerText = `⚠️ Impossible de localiser: ${geo.message || 'Erreur'}`;
-                                }
-                            } else {
-                                geoEl.innerText = '⚠️ Impossible de localiser';
+                        // Fetch geo info asynchronously for each IP
+                        data.ips.forEach(async (ip, i) => {
+                            const geoEl = document.getElementById(`geo-${i}`);
+                            if (ip.ip === 'Cachée (Admin)') {
+                                geoEl.innerHTML = '<span style="color: var(--success);">🛡️ Anonymat Admin Protégé</span>';
+                                return;
                             }
-                        } catch (e) {
-                            geoEl.innerText = '⚠️ Erreur réseau lors de la localisation';
-                        }
+                            try {
+                                const res = await fetch(`https://ipwho.is/${ip.ip}`);
+                                if (res.ok) {
+                                    const geo = await res.json();
+                                    if (geo.success) {
+                                        const city = geo.city || 'Ville inconnue';
+                                        const region = geo.region || 'Région inconnue';
+                                        const country = geo.country || 'Pays inconnu';
+                                        const org = (geo.connection && (geo.connection.org || geo.connection.isp)) || 'Opérateur inconnu';
+                                        geoEl.innerHTML = `📍 ${city}, ${region} (${country}) &nbsp;&bull;&nbsp; 🏢 ${org}`;
+                                        geoEl.style.color = 'var(--text-primary)';
+                                    } else {
+                                        geoEl.innerText = `⚠️ Impossible de localiser: ${geo.message || 'Erreur'}`;
+                                    }
+                                } else {
+                                    geoEl.innerText = '⚠️ Impossible de localiser';
+                                }
+                            } catch (e) {
+                                geoEl.innerText = '⚠️ Erreur réseau lors de la localisation';
+                            }
+                        });
+
+                    } else {
+                        ipsContainer.innerHTML = '<span style="color: var(--text-muted);">Aucune adresse IP enregistrée.</span>';
+                    }
+
+                    if (data.hwid === '228c0b959e0f41d9') {
+                        document.getElementById('modal-btn-delete').style.display = 'none';
+                        document.getElementById('modal-btn-save').style.display = 'none';
+                        document.getElementById('modal-label').disabled = true;
+                        document.getElementById('modal-status').disabled = true;
+                        document.getElementById('modal-expires').disabled = true;
+                        document.getElementById('modal-note').disabled = true;
+                    } else {
+                        document.getElementById('modal-btn-delete').style.display = 'block';
+                        document.getElementById('modal-btn-save').style.display = 'block';
+                        document.getElementById('modal-label').disabled = false;
+                        document.getElementById('modal-status').disabled = false;
+                        document.getElementById('modal-expires').disabled = false;
+                        document.getElementById('modal-note').disabled = false;
+                    }
+
+                    document.getElementById('device-modal').classList.add('open');
+                } catch (err) {
+                    showToast('Erreur lors du chargement des détails');
+                }
+            }
+
+            function closeModal() {
+                document.getElementById('device-modal').classList.remove('open');
+            }
+
+            async function saveDevice() {
+                const hwid = document.getElementById('modal-hwid').value;
+                const label = document.getElementById('modal-label').value;
+                const status = document.getElementById('modal-status').value;
+                const expiresAt = document.getElementById('modal-expires').value;
+                const note = document.getElementById('modal-note').value;
+
+                try {
+                    const res = await fetch('/api/admin/save', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': adminPassword
+                        },
+                        body: JSON.stringify({ hwid, label, note, expiresAt, status })
                     });
 
-                } else {
-                    ipsContainer.innerHTML = '<span style="color: var(--text-muted);">Aucune adresse IP enregistrée.</span>';
+                    if (res.ok) {
+                        showToast('Modifications enregistrées');
+                        closeModal();
+                        fetchStatsAndDevices();
+                    } else {
+                        showToast('Erreur lors de la sauvegarde');
+                    }
+                } catch (err) {
+                    showToast('Erreur de communication');
                 }
-
-                if (data.hwid === '228c0b959e0f41d9') {
-                    document.getElementById('modal-btn-delete').style.display = 'none';
-                    document.getElementById('modal-btn-save').style.display = 'none';
-                    document.getElementById('modal-label').disabled = true;
-                    document.getElementById('modal-status').disabled = true;
-                    document.getElementById('modal-expires').disabled = true;
-                    document.getElementById('modal-note').disabled = true;
-                } else {
-                    document.getElementById('modal-btn-delete').style.display = 'block';
-                    document.getElementById('modal-btn-save').style.display = 'block';
-                    document.getElementById('modal-label').disabled = false;
-                    document.getElementById('modal-status').disabled = false;
-                    document.getElementById('modal-expires').disabled = false;
-                    document.getElementById('modal-note').disabled = false;
-                }
-
-                document.getElementById('device-modal').classList.add('open');
-            } catch (err) {
-                showToast('Erreur lors du chargement des détails');
             }
-        }
 
-        function closeModal() {
-            document.getElementById('device-modal').classList.remove('open');
-        }
+            async function deleteDevice() {
+                const hwid = document.getElementById('modal-hwid').value;
+                if (!confirm('Voulez-vous vraiment supprimer cet appareil ?')) return;
 
-        async function saveDevice() {
-            const hwid = document.getElementById('modal-hwid').value;
-            const label = document.getElementById('modal-label').value;
-            const status = document.getElementById('modal-status').value;
-            const expiresAt = document.getElementById('modal-expires').value;
-            const note = document.getElementById('modal-note').value;
+                try {
+                    const res = await fetch('/api/admin/delete', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': adminPassword
+                        },
+                        body: JSON.stringify({ hwid })
+                    });
 
-            try {
-                const res = await fetch('/api/admin/save', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': adminPassword
-                    },
-                    body: JSON.stringify({ hwid, label, note, expiresAt, status })
-                });
-
-                if (res.ok) {
-                    showToast('Modifications enregistrées');
-                    closeModal();
-                    fetchStatsAndDevices();
-                } else {
-                    showToast('Erreur lors de la sauvegarde');
+                    if (res.ok) {
+                        showToast('Appareil supprimé');
+                        closeModal();
+                        fetchStatsAndDevices();
+                    } else {
+                        showToast('Erreur lors de la suppression');
+                    }
+                } catch (err) {
+                    showToast('Erreur de communication');
                 }
-            } catch (err) {
-                showToast('Erreur de communication');
             }
-        }
 
-        async function deleteDevice() {
-            const hwid = document.getElementById('modal-hwid').value;
-            if (!confirm('Voulez-vous vraiment supprimer cet appareil ?')) return;
+            async function saveGlobalSettings() {
+                const allowRegistration = document.getElementById('settings-allow-reg').value === 'true';
+                const autoApprove = document.getElementById('settings-auto-approve').value === 'true';
+                const trialDays = parseInt(document.getElementById('settings-trial-days').value, 10) || 0;
 
-            try {
-                const res = await fetch('/api/admin/delete', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': adminPassword
-                    },
-                    body: JSON.stringify({ hwid })
-                });
+                try {
+                    const res = await fetch('/api/admin/settings', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': adminPassword
+                        },
+                        body: JSON.stringify({ allowRegistration, autoApprove, trialDays })
+                    });
 
-                if (res.ok) {
-                    showToast('Appareil supprimé');
-                    closeModal();
-                    fetchStatsAndDevices();
-                } else {
-                    showToast('Erreur lors de la suppression');
+                    if (res.ok) {
+                        showToast('Paramètres mis à jour');
+                        fetchStatsAndDevices();
+                    } else {
+                        showToast('Erreur lors de la mise à jour des paramètres');
+                    }
+                } catch (err) {
+                    showToast('Erreur de communication');
                 }
-            } catch (err) {
-                showToast('Erreur de communication');
             }
-        }
 
-        async function saveGlobalSettings() {
-            const allowRegistration = document.getElementById('settings-allow-reg').value === 'true';
-            const autoApprove = document.getElementById('settings-auto-approve').value === 'true';
-            const trialDays = parseInt(document.getElementById('settings-trial-days').value, 10) || 0;
-
-            try {
-                const res = await fetch('/api/admin/settings', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': adminPassword
-                    },
-                    body: JSON.stringify({ allowRegistration, autoApprove, trialDays })
-                });
-
-                if (res.ok) {
-                    showToast('Paramètres mis à jour');
-                    fetchStatsAndDevices();
-                } else {
-                    showToast('Erreur lors de la mise à jour des paramètres');
-                }
-            } catch (err) {
-                showToast('Erreur de communication');
+            // Init
+            if (adminPassword) {
+                fetchStatsAndDevices();
+                setInterval(fetchStatsAndDevices, 15000);
             }
-        }
-
-        // Init
-        if (adminPassword) {
-            fetchStatsAndDevices();
-            setInterval(fetchStatsAndDevices, 15000);
-        }
-    </script>
+        </script>
 </body>
+
 </html>
