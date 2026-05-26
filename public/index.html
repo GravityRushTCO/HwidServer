@@ -504,6 +504,9 @@
             <div class="stat-card banned">
                 <span class="stat-label">Bannis</span>
                 <span id="stat-banned" class="stat-value">0</span>
+            <div class="stat-card pending">
+                <span class="stat-label">Commandes en attente</span>
+                <span id="stat-orders" class="stat-value" style="color: #ec4899;">0</span>
             </div>
         </div>
 
@@ -577,6 +580,34 @@
                         <h3 style="color: var(--text-primary); margin-bottom: 4px;">Aucun appareil trouvé</h3>
                         <p>Les nouveaux clients apparaîtront ici dès qu'ils lanceront le mod menu.</p>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Commandes (Boutique) -->
+        <div class="dashboard-container" style="margin-top: 24px;">
+            <div class="control-bar" style="background: rgba(236, 72, 153, 0.05);">
+                <h3 style="font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                    🛒 Commandes Boutique (En Attente)
+                </h3>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>HWID Client</th>
+                            <th>Méthode</th>
+                            <th>Preuve / Code</th>
+                            <th>Actions (Donner 7 jours)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-table-body">
+                        <!-- Orders loaded dynamically -->
+                    </tbody>
+                </table>
+                <div id="orders-empty-state" class="empty-state" style="display: none; padding: 30px;">
+                    <div style="color: var(--text-muted);">Aucune nouvelle commande en attente.</div>
                 </div>
             </div>
         </div>
@@ -730,6 +761,7 @@
                 document.getElementById('stat-active').textContent = stats.active;
                 document.getElementById('stat-pending').textContent = stats.pending;
                 document.getElementById('stat-banned').textContent = stats.banned;
+                document.getElementById('stat-orders').textContent = stats.pendingOrders || 0;
 
                 // Fetch Settings
                 const settingsRes = await fetch('/api/admin/settings', {
@@ -748,6 +780,9 @@
                 });
                 allDevices = await devRes.json();
                 renderDevices(allDevices);
+                
+                // Fetch Orders
+                fetchOrders();
             } catch (err) {
                 showToast('Erreur lors de la récupération des données');
             }
@@ -808,6 +843,64 @@
                 `;
                 tbody.appendChild(tr);
             });
+        }
+
+        async function fetchOrders() {
+            try {
+                const res = await fetch('/api/admin/orders', {
+                    headers: { 'Authorization': adminPassword }
+                });
+                if (res.status === 401) return;
+                const orders = await res.json();
+                
+                const pendingOrders = orders.filter(o => o.status === 'pending');
+                const tbody = document.getElementById('orders-table-body');
+                const empty = document.getElementById('orders-empty-state');
+                
+                tbody.innerHTML = '';
+                if (pendingOrders.length === 0) {
+                    empty.style.display = 'flex';
+                } else {
+                    empty.style.display = 'none';
+                    pendingOrders.forEach(o => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td style="color:var(--text-muted); font-size:12px;">${new Date(o.created_at).toLocaleString()}</td>
+                            <td style="font-family:monospace; font-weight:bold;">${o.hwid}</td>
+                            <td><span class="badge" style="background:rgba(255,255,255,0.1);">${o.method.toUpperCase()}</span></td>
+                            <td style="font-family:monospace; color:var(--primary);">${o.proof}</td>
+                            <td>
+                                <button class="btn" style="padding: 6px 12px; font-size:12px; background:#10b981;" onclick="handleOrder(${o.id}, 'approve', '${o.hwid}')">✅ Valider (7j)</button>
+                                <button class="btn btn-secondary" style="padding: 6px 12px; font-size:12px;" onclick="handleOrder(${o.id}, 'reject', '${o.hwid}')">❌ Refuser</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+            } catch (e) {
+                console.error('Error fetching orders:', e);
+            }
+        }
+
+        async function handleOrder(id, action, hwid) {
+            if (!confirm(`Êtes-vous sûr de vouloir ${action === 'approve' ? 'VALIDER' : 'REFUSER'} cette commande ?`)) return;
+            
+            try {
+                const res = await fetch('/api/admin/orders/action', {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': adminPassword,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ id, action, hwid })
+                });
+                if (res.ok) {
+                    showToast(`Commande ${action === 'approve' ? 'approuvée' : 'refusée'} avec succès.`, 'success');
+                    fetchStatsAndDevices();
+                }
+            } catch (e) {
+                showToast('Erreur lors du traitement de la commande.', 'error');
+            }
         }
 
         function filterDevices() {
