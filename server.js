@@ -194,6 +194,47 @@ app.post('/api/auth', (req, res) => {
     });
 });
 
+// -- WEBHOOK SELLIX (PAIEMENT AUTOMATIQUE) --
+app.post('/api/webhook/sellix', (req, res) => {
+    const payload = req.body;
+    
+    // On ne traite que les commandes payées
+    if (payload.event !== 'order:paid') {
+        return res.status(200).send('Ignored');
+    }
+
+    const order = payload.data;
+    
+    let hwid = null;
+    if (order.custom_fields) {
+        hwid = order.custom_fields.HWID || order.custom_fields.hwid;
+    }
+
+    if (!hwid) {
+        console.error('[Sellix] Paiement validé mais aucun HWID trouvé. Email:', order.customer_email);
+        return res.status(400).send('No HWID found');
+    }
+
+    // Ajoute 7 jours
+    const expiresAt = new Date(Date.now() + 7 * 86400000).toISOString();
+
+    db.get('SELECT * FROM devices WHERE hwid = ?', [hwid], (err, row) => {
+        if (row) {
+            db.run(
+                'UPDATE devices SET status = ?, expires_at = ?, approved_by = ?, app_source = ? WHERE hwid = ?',
+                ['allowed', expiresAt, 'Automatique (Sellix)', 'FUSION', hwid]
+            );
+        } else {
+            db.run(
+                'INSERT INTO devices (hwid, label, status, expires_at, app_source, approved_by) VALUES (?, ?, ?, ?, ?, ?)',
+                [hwid, order.customer_email || 'Acheteur Sellix', 'allowed', expiresAt, 'FUSION', 'Automatique (Sellix)']
+            );
+        }
+        console.log(`[Sellix] ✅ HWID ${hwid} approuvé automatiquement pour 7 jours.`);
+    });
+
+    res.status(200).send('OK');
+});
 
 // -- ADMIN APIS --
 app.get('/api/admin/stats', authMiddleware, (req, res) => {
