@@ -597,10 +597,10 @@
                     <thead>
                         <tr>
                             <th>Date</th>
-                            <th>HWID Client</th>
+                            <th>@ Telegram</th>
                             <th>Méthode</th>
                             <th>Preuve / Code</th>
-                            <th>Actions (Donner 7 jours)</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="orders-table-body">
@@ -871,7 +871,7 @@
                             <td><span class="badge" style="background:rgba(255,255,255,0.1);">${o.method.toUpperCase()}</span></td>
                             <td style="font-family:monospace; color:var(--primary);">${o.proof}</td>
                             <td>
-                                <button class="btn" style="padding: 6px 12px; font-size:12px; background:#10b981;" onclick="handleOrder(${o.id}, 'approve', '${o.hwid}')">✅ Valider (7j)</button>
+                                <button class="btn" style="padding: 6px 12px; font-size:12px; background:#10b981;" onclick="handleOrder(${o.id}, 'approve', '${o.hwid}')">✅ Valider Paiement</button>
                                 <button class="btn btn-secondary" style="padding: 6px 12px; font-size:12px;" onclick="handleOrder(${o.id}, 'reject', '${o.hwid}')">❌ Refuser</button>
                             </td>
                         `;
