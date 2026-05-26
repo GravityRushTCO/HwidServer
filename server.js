@@ -208,20 +208,24 @@ app.post('/api/store/order', (req, res) => {
         if (err) return res.status(500).json({ error: err.message });
         
         // Envoi de la notification Push
-        const postData = `Telegram: ${hwid}\nMéthode: ${method}\nPreuve: ${proof}`;
+        const postData = Buffer.from(`Telegram: ${hwid}\nMéthode: ${method}\nPreuve: ${proof}`, 'utf8');
         const options = {
             hostname: 'ntfy.sh',
             port: 443,
             path: '/Gravity_FUSION_Boutique_Privee_X9V2',
             method: 'POST',
             headers: {
-                'Title': 'Nouveau Paiement FUSION 💰',
+                'Title': 'Nouveau Paiement FUSION',
                 'Tags': 'money_with_wings,bell',
-                'Priority': 'high'
+                'Priority': 'high',
+                'Content-Type': 'text/plain; charset=utf-8',
+                'Content-Length': postData.length
             }
         };
 
-        const reqNtfy = https.request(options, () => {});
+        const reqNtfy = https.request(options, (resNtfy) => {
+            resNtfy.on('data', () => {}); // Consume data to free memory
+        });
         reqNtfy.on('error', (e) => console.error('[Ntfy Error]', e));
         reqNtfy.write(postData);
         reqNtfy.end();
