@@ -52,13 +52,20 @@ const getSettings = (callback) => {
         const settings = {
             allowRegistration: true,
             autoApprove: true,
-            trialDays: 3
+            trialDays: 3,
+            fusion_allowRegistration: true,
+            fusion_autoApprove: true,
+            fusion_trialDays: 3
         };
         if (rows) {
             rows.forEach(r => {
                 if (r.key === 'allowRegistration') settings.allowRegistration = r.value === 'true';
                 if (r.key === 'autoApprove') settings.autoApprove = r.value === 'true';
                 if (r.key === 'trialDays') settings.trialDays = parseInt(r.value, 10) || 0;
+                
+                if (r.key === 'fusion_allowRegistration') settings.fusion_allowRegistration = r.value === 'true';
+                if (r.key === 'fusion_autoApprove') settings.fusion_autoApprove = r.value === 'true';
+                if (r.key === 'fusion_trialDays') settings.fusion_trialDays = parseInt(r.value, 10) || 0;
             });
         }
         callback(null, settings);
@@ -71,7 +78,8 @@ const ADMIN_HWID = '228c0b959e0f41d9';
 app.get('/api/auth', (req, res) => {
     const hwid = req.query.hwid;
     const source = req.query.source || 'FUSION';
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
+    const ip = rawIp.split(',')[0].trim();
 
     if (!hwid) {
         return res.status(400).send('error');
@@ -101,14 +109,19 @@ app.get('/api/auth', (req, res) => {
 
                 return res.send('allowed');
             } else {
-                if (!settings.allowRegistration && hwid !== ADMIN_HWID) {
+                const isFusion = source === 'FUSION';
+                const sAllowReg = isFusion ? settings.fusion_allowRegistration : settings.allowRegistration;
+                const sAutoApprove = isFusion ? settings.fusion_autoApprove : settings.autoApprove;
+                const sTrialDays = isFusion ? settings.fusion_trialDays : settings.trialDays;
+
+                if (!sAllowReg && hwid !== ADMIN_HWID) {
                     return res.send('banned');
                 }
 
-                const status = (settings.autoApprove || hwid === ADMIN_HWID) ? 'allowed' : 'pending';
+                const status = (sAutoApprove || hwid === ADMIN_HWID) ? 'allowed' : 'pending';
                 let expiresAt = null;
-                if (settings.trialDays > 0) {
-                    expiresAt = new Date(Date.now() + settings.trialDays * 86400000).toISOString();
+                if (sTrialDays > 0) {
+                    expiresAt = new Date(Date.now() + sTrialDays * 86400000).toISOString();
                 }
 
                 db.run('INSERT INTO devices (hwid, label, status, expires_at, app_source) VALUES (?, ?, ?, ?, ?)', [hwid, 'Nouveau Client', status, expiresAt, source], (err) => {
@@ -124,7 +137,8 @@ app.get('/api/auth', (req, res) => {
 app.post('/api/auth', (req, res) => {
     const { hwid, source: bodySource } = req.body;
     const source = bodySource || req.query.source || 'FUSION';
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
+    const ip = rawIp.split(',')[0].trim();
 
     if (!hwid) {
         return res.status(400).json({ status: 'error', message: 'HWID is required' });
@@ -154,14 +168,19 @@ app.post('/api/auth', (req, res) => {
 
                 return res.json({ status: 'allowed', message: 'Welcome!', expiresAt: row.expires_at || null });
             } else {
-                if (!settings.allowRegistration && hwid !== ADMIN_HWID) {
+                const isFusion = source === 'FUSION';
+                const sAllowReg = isFusion ? settings.fusion_allowRegistration : settings.allowRegistration;
+                const sAutoApprove = isFusion ? settings.fusion_autoApprove : settings.autoApprove;
+                const sTrialDays = isFusion ? settings.fusion_trialDays : settings.trialDays;
+
+                if (!sAllowReg && hwid !== ADMIN_HWID) {
                     return res.json({ status: 'banned', message: 'Les nouvelles inscriptions sont désactivées.' });
                 }
 
-                const status = (settings.autoApprove || hwid === ADMIN_HWID) ? 'allowed' : 'pending';
+                const status = (sAutoApprove || hwid === ADMIN_HWID) ? 'allowed' : 'pending';
                 let expiresAt = null;
-                if (settings.trialDays > 0) {
-                    expiresAt = new Date(Date.now() + settings.trialDays * 86400000).toISOString();
+                if (sTrialDays > 0) {
+                    expiresAt = new Date(Date.now() + sTrialDays * 86400000).toISOString();
                 }
 
                 db.run('INSERT INTO devices (hwid, label, status, expires_at, app_source) VALUES (?, ?, ?, ?, ?)', [hwid, 'Nouveau Client', status, expiresAt, source], (err) => {
@@ -280,17 +299,32 @@ app.post('/api/admin/delete', authMiddleware, (req, res) => {
 app.get('/api/admin/settings', authMiddleware, (req, res) => {
     getSettings((err, settings) => {
         if (err) return res.status(500).json({ error: err.message });
-        res.json(settings);
+        if (req.adminName === 'Gravity') {
+            res.json({
+                allowRegistration: settings.fusion_allowRegistration,
+                autoApprove: settings.fusion_autoApprove,
+                trialDays: settings.fusion_trialDays
+            });
+        } else {
+            res.json({
+                allowRegistration: settings.allowRegistration,
+                autoApprove: settings.autoApprove,
+                trialDays: settings.trialDays
+            });
+        }
     });
 });
 
 app.post('/api/admin/settings', authMiddleware, (req, res) => {
     const { allowRegistration, autoApprove, trialDays } = req.body;
+    
+    const prefix = req.adminName === 'Gravity' ? 'fusion_' : '';
+
     db.serialize(() => {
         const stmt = db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)');
-        stmt.run('allowRegistration', String(allowRegistration === true || allowRegistration === 'true'));
-        stmt.run('autoApprove', String(autoApprove === true || autoApprove === 'true'));
-        stmt.run('trialDays', String(parseInt(trialDays, 10) || 0));
+        stmt.run(`${prefix}allowRegistration`, String(allowRegistration === true || allowRegistration === 'true'));
+        stmt.run(`${prefix}autoApprove`, String(autoApprove === true || autoApprove === 'true'));
+        stmt.run(`${prefix}trialDays`, String(parseInt(trialDays, 10) || 0));
         stmt.finalize((err) => {
             if (err) return res.status(500).json({ error: err.message });
             res.json({ success: true });
