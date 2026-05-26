@@ -85,7 +85,6 @@
         <option value="">-- Choisir une méthode de paiement --</option>
         <option value="paypal">PayPal</option>
         <option value="paysafecard">Paysafecard</option>
-        <option value="skrill">Skrill / CB</option>
     </select>
 
     <div id="paypal-info" class="hidden" style="margin-bottom:15px; font-size:13px; text-align:left;">
@@ -97,12 +96,6 @@
     <div id="psc-info" class="hidden" style="margin-bottom:15px; font-size:13px; text-align:left;">
         Entrez le code PIN à 16 chiffres de votre carte Paysafecard (10€ minimum) :
         <input type="text" id="proof-psc" placeholder="XXXX-XXXX-XXXX-XXXX" style="margin-top:10px;">
-    </div>
-
-    <div id="skrill-info" class="hidden" style="margin-bottom:15px; font-size:13px; text-align:left;">
-        1. Envoyez 10€ sur notre compte Skrill: <b>tonemail@skrill.com</b><br>
-        2. Entrez l'email utilisé pour le paiement :
-        <input type="text" id="proof-skrill" placeholder="Votre email Skrill" style="margin-top:10px;">
     </div>
 
     <button onclick="submitOrder()">Valider mon paiement</button>
@@ -123,11 +116,9 @@
         const m = document.getElementById('method').value;
         document.getElementById('paypal-info').classList.add('hidden');
         document.getElementById('psc-info').classList.add('hidden');
-        document.getElementById('skrill-info').classList.add('hidden');
         
         if (m === 'paypal') document.getElementById('paypal-info').classList.remove('hidden');
         if (m === 'paysafecard') document.getElementById('psc-info').classList.remove('hidden');
-        if (m === 'skrill') document.getElementById('skrill-info').classList.remove('hidden');
     }
 
     async function submitOrder() {
@@ -138,7 +129,6 @@
         let proof = '';
         if (method === 'paypal') proof = document.getElementById('proof-paypal').value.trim();
         if (method === 'paysafecard') proof = document.getElementById('proof-psc').value.trim();
-        if (method === 'skrill') proof = document.getElementById('proof-skrill').value.trim();
 
         if (!proof) return alert('Veuillez entrer la preuve de paiement ou le code.');
 
