@@ -336,20 +336,10 @@ app.get('/api/admin/orders', authMiddleware, (req, res) => {
 });
 
 app.post('/api/admin/orders/action', authMiddleware, (req, res) => {
-    const { id, action, hwid } = req.body; // action: 'approve' or 'reject'
+    const { id, action } = req.body; // action: 'approve' or 'reject'
     if (action === 'approve') {
-        const expiresAt = new Date(Date.now() + 7 * 86400000).toISOString();
-        db.get('SELECT * FROM devices WHERE hwid = ?', [hwid], (err, row) => {
-            if (row) {
-                db.run('UPDATE devices SET status = ?, expires_at = ?, approved_by = ?, app_source = ? WHERE hwid = ?',
-                    ['allowed', expiresAt, req.adminName, 'FUSION', hwid]);
-            } else {
-                db.run('INSERT INTO devices (hwid, label, status, expires_at, app_source, approved_by) VALUES (?, ?, ?, ?, ?, ?)',
-                    [hwid, 'Client Boutique', 'allowed', expiresAt, 'FUSION', req.adminName]);
-            }
-            db.run('UPDATE orders SET status = "approved" WHERE id = ?', [id], () => {
-                res.json({ success: true });
-            });
+        db.run('UPDATE orders SET status = "approved" WHERE id = ?', [id], () => {
+            res.json({ success: true });
         });
     } else {
         db.run('UPDATE orders SET status = "rejected" WHERE id = ?', [id], () => {
