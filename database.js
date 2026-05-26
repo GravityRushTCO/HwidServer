@@ -34,6 +34,7 @@ db.serialize(() => {
         expires_at DATETIME,
         last_ip TEXT,
         last_country TEXT,
+        app_source TEXT DEFAULT 'Unknown',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         last_seen DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
@@ -54,6 +55,11 @@ db.serialize(() => {
     // Add approved_by column if it doesn't exist
     db.run(`ALTER TABLE devices ADD COLUMN approved_by TEXT`, (err) => {
         if (!err) console.log('[DB] Colonne approved_by ajoutée.');
+    });
+
+    // Add app_source column if it doesn't exist
+    db.run(`ALTER TABLE devices ADD COLUMN app_source TEXT DEFAULT 'Unknown'`, (err) => {
+        if (!err) console.log('[DB] Colonne app_source ajoutée.');
     });
 });
 
