@@ -246,6 +246,10 @@ app.get('/api/admin/stats', authMiddleware, (req, res) => {
         let filteredRows = rows;
         if (req.adminName === 'Brodie') {
             filteredRows = rows.filter(r => r.app_source !== 'FUSION' && r.approved_by !== 'Gravity');
+        } else if (req.adminName === 'Gravity') {
+            filteredRows = rows.filter(r => r.app_source === 'FUSION' || r.approved_by === 'Gravity' || r.app_source === null); // Included null just in case, but strictly FUSION/Gravity is better
+            // Wait, strictly Gravity FUSION:
+            filteredRows = rows.filter(r => r.app_source === 'FUSION' || r.approved_by === 'Gravity');
         }
 
         let total = filteredRows.length;
@@ -278,6 +282,8 @@ app.get('/api/admin/devices', authMiddleware, (req, res) => {
         let filteredRows = rows;
         if (req.adminName === 'Brodie') {
             filteredRows = rows.filter(r => r.app_source !== 'FUSION' && r.approved_by !== 'Gravity');
+        } else if (req.adminName === 'Gravity') {
+            filteredRows = rows.filter(r => r.app_source === 'FUSION' || r.approved_by === 'Gravity');
         }
 
         const safeRows = filteredRows.map(r => {
