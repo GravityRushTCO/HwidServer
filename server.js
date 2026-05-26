@@ -194,46 +194,31 @@ app.post('/api/auth', (req, res) => {
     });
 });
 
-// -- WEBHOOK SELLIX (PAIEMENT AUTOMATIQUE) --
-app.post('/api/webhook/sellix', (req, res) => {
-    const payload = req.body;
-    
-    // On ne traite que les commandes payées
-    if (payload.event !== 'order:paid') {
-        return res.status(200).send('Ignored');
-    }
+// -- STORE & ORDERS API --
+app.post('/api/store/order', (req, res) => {
+    const { hwid, method, proof } = req.body;
+    if (!hwid || !method || !proof) return res.status(400).json({ error: 'Missing fields' });
 
-    const order = payload.data;
-    
-    let hwid = null;
-    if (order.custom_fields) {
-        hwid = order.custom_fields.HWID || order.custom_fields.hwid;
-    }
-
-    if (!hwid) {
-        console.error('[Sellix] Paiement validé mais aucun HWID trouvé. Email:', order.customer_email);
-        return res.status(400).send('No HWID found');
-    }
-
-    // Ajoute 7 jours
-    const expiresAt = new Date(Date.now() + 7 * 86400000).toISOString();
-
-    db.get('SELECT * FROM devices WHERE hwid = ?', [hwid], (err, row) => {
-        if (row) {
-            db.run(
-                'UPDATE devices SET status = ?, expires_at = ?, approved_by = ?, app_source = ? WHERE hwid = ?',
-                ['allowed', expiresAt, 'Automatique (Sellix)', 'FUSION', hwid]
-            );
-        } else {
-            db.run(
-                'INSERT INTO devices (hwid, label, status, expires_at, app_source, approved_by) VALUES (?, ?, ?, ?, ?, ?)',
-                [hwid, order.customer_email || 'Acheteur Sellix', 'allowed', expiresAt, 'FUSION', 'Automatique (Sellix)']
-            );
-        }
-        console.log(`[Sellix] ✅ HWID ${hwid} approuvé automatiquement pour 7 jours.`);
+    db.run('INSERT INTO orders (hwid, method, proof) VALUES (?, ?, ?)', [hwid, method, proof], (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true, message: 'Commande reçue. En attente de validation.' });
     });
+});
 
-    res.status(200).send('OK');
+app.get('/api/store/status', (req, res) => {
+    const { hwid } = req.query;
+    if (!hwid) return res.status(400).json({ error: 'Missing HWID' });
+
+    db.get('SELECT * FROM orders WHERE hwid = ? ORDER BY created_at DESC LIMIT 1', [hwid], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!row) return res.json({ status: 'none' });
+        
+        let downloadLink = null;
+        if (row.status === 'approved') {
+            downloadLink = 'https://ton-lien-mega-ou-mediafire.com/V10_FUSION.apk'; // TODO: Update this link
+        }
+        res.json({ status: row.status, method: row.method, downloadLink });
+    });
 });
 
 // -- ADMIN APIS --
@@ -255,15 +240,17 @@ app.get('/api/admin/stats', authMiddleware, (req, res) => {
             if (r.status === 'banned') banned++;
             else if (r.status === 'pending') pending++;
             else if (r.status === 'allowed') {
-                if (r.expires_at && Date.now() > new Date(r.expires_at).getTime()) {
-                    banned++; // Treat expired as banned/inactive
+                if (r.expires_at && new Date(r.expires_at) < new Date()) {
+                    // expired
                 } else {
                     active++;
                 }
             }
         });
 
-        res.json({ total, active, pending, banned });
+        db.get('SELECT COUNT(*) as pendingOrders FROM orders WHERE status = "pending"', [], (err, orderRow) => {
+            res.json({ total, active, pending, banned, pendingOrders: orderRow ? orderRow.pendingOrders : 0 });
+        });
     });
 });
 
@@ -335,6 +322,36 @@ app.post('/api/admin/delete', authMiddleware, (req, res) => {
         db.run('DELETE FROM ip_history WHERE hwid = ?', [hwid]);
         res.json({ success: true });
     });
+});
+
+app.get('/api/admin/orders', authMiddleware, (req, res) => {
+    db.all('SELECT * FROM orders ORDER BY created_at DESC', [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows);
+    });
+});
+
+app.post('/api/admin/orders/action', authMiddleware, (req, res) => {
+    const { id, action, hwid } = req.body; // action: 'approve' or 'reject'
+    if (action === 'approve') {
+        const expiresAt = new Date(Date.now() + 7 * 86400000).toISOString();
+        db.get('SELECT * FROM devices WHERE hwid = ?', [hwid], (err, row) => {
+            if (row) {
+                db.run('UPDATE devices SET status = ?, expires_at = ?, approved_by = ?, app_source = ? WHERE hwid = ?',
+                    ['allowed', expiresAt, req.adminName, 'FUSION', hwid]);
+            } else {
+                db.run('INSERT INTO devices (hwid, label, status, expires_at, app_source, approved_by) VALUES (?, ?, ?, ?, ?, ?)',
+                    [hwid, 'Client Boutique', 'allowed', expiresAt, 'FUSION', req.adminName]);
+            }
+            db.run('UPDATE orders SET status = "approved" WHERE id = ?', [id], () => {
+                res.json({ success: true });
+            });
+        });
+    } else {
+        db.run('UPDATE orders SET status = "rejected" WHERE id = ?', [id], () => {
+            res.json({ success: true });
+        });
+    }
 });
 
 app.get('/api/admin/settings', authMiddleware, (req, res) => {
