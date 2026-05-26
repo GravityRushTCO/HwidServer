@@ -876,7 +876,8 @@
                             return;
                         }
                         try {
-                            const res = await fetch(`https://ipwho.is/${ip.ip}`);
+                            const actualIp = ip.ip.split(',')[0].trim();
+                            const res = await fetch(`https://ipwho.is/${actualIp}`);
                             if (res.ok) {
                                 const geo = await res.json();
                                 if (geo.success) {
