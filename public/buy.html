@@ -88,14 +88,14 @@
     </select>
 
     <div id="paypal-info" class="hidden" style="margin-bottom:15px; font-size:13px; text-align:left;">
-        1. Envoyez 10€ à <b><a href="https://paypal.me/TONLIENPAYPAL" target="_blank" style="color:var(--primary);">TonLienPayPal</a></b> (Entre proches)<br>
-        2. Entrez l'ID de transaction ci-dessous :
-        <input type="text" id="proof-paypal" placeholder="ID de transaction PayPal" style="margin-top:10px;">
+        1. Cliquez ici pour payer la facture de 10€ : <br><b><a href="https://www.paypal.com/invoice/p/#2CU6RJR337XX6KTD" target="_blank" style="color:var(--primary); display:inline-block; margin-top:5px; margin-bottom:5px;">Payer la facture PayPal</a></b><br>
+        2. Entrez votre nom PayPal ou l'ID de transaction ci-dessous :
+        <input type="text" id="proof-paypal" placeholder="Nom PayPal ou ID de transaction" style="margin-top:10px;">
     </div>
 
     <div id="psc-info" class="hidden" style="margin-bottom:15px; font-size:13px; text-align:left;">
-        Entrez le code PIN à 16 chiffres de votre carte Paysafecard (10€ minimum) :
-        <input type="text" id="proof-psc" placeholder="XXXX-XXXX-XXXX-XXXX" style="margin-top:10px;">
+        Entrez le code PIN à 16 chiffres de votre carte Paysafecard (exactement 10€) :
+        <input type="text" id="proof-psc" placeholder="XXXX-XXXX-XXXX-XXXX" maxlength="19" oninput="formatPSC(this)" style="margin-top:10px; font-family:monospace; text-align:center; font-size:16px;">
     </div>
 
     <button onclick="submitOrder()">Valider mon paiement</button>
@@ -121,14 +121,31 @@
         if (m === 'paysafecard') document.getElementById('psc-info').classList.remove('hidden');
     }
 
+    function formatPSC(input) {
+        let val = input.value.replace(/\D/g, '');
+        if (val.length > 16) val = val.slice(0, 16);
+        let formatted = '';
+        for (let i = 0; i < val.length; i++) {
+            if (i > 0 && i % 4 === 0) formatted += '-';
+            formatted += val[i];
+        }
+        input.value = formatted;
+    }
+
     async function submitOrder() {
         const hwid = document.getElementById('hwid').value.trim();
         const method = document.getElementById('method').value;
         if (!hwid || !method) return alert('Veuillez remplir tous les champs');
 
         let proof = '';
-        if (method === 'paypal') proof = document.getElementById('proof-paypal').value.trim();
-        if (method === 'paysafecard') proof = document.getElementById('proof-psc').value.trim();
+        if (method === 'paypal') {
+            proof = document.getElementById('proof-paypal').value.trim();
+        } else if (method === 'paysafecard') {
+            proof = document.getElementById('proof-psc').value.trim();
+            if (proof.replace(/-/g, '').length !== 16) {
+                return alert('Le code Paysafecard doit contenir exactement 16 chiffres.');
+            }
+        }
 
         if (!proof) return alert('Veuillez entrer la preuve de paiement ou le code.');
 
