@@ -70,6 +70,7 @@ const ADMIN_HWID = '228c0b959e0f41d9';
 
 app.get('/api/auth', (req, res) => {
     const hwid = req.query.hwid;
+    const source = req.query.source || 'FUSION';
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
     if (!hwid) {
@@ -83,8 +84,8 @@ app.get('/api/auth', (req, res) => {
             if (err) return res.status(500).send('error');
 
             if (row) {
-                // Update last seen & IP
-                db.run('UPDATE devices SET last_seen = CURRENT_TIMESTAMP, last_ip = ? WHERE hwid = ?', [ip, hwid]);
+                // Update last seen, IP & source
+                db.run('UPDATE devices SET last_seen = CURRENT_TIMESTAMP, last_ip = ?, app_source = ? WHERE hwid = ?', [ip, source, hwid]);
                 db.run('INSERT INTO ip_history (hwid, ip) VALUES (?, ?)', [hwid, ip]);
 
                 if (hwid !== ADMIN_HWID && row.status === 'banned') {
@@ -110,7 +111,7 @@ app.get('/api/auth', (req, res) => {
                     expiresAt = new Date(Date.now() + settings.trialDays * 86400000).toISOString();
                 }
 
-                db.run('INSERT INTO devices (hwid, label, status, expires_at) VALUES (?, ?, ?, ?)', [hwid, 'Nouveau Client', status, expiresAt], (err) => {
+                db.run('INSERT INTO devices (hwid, label, status, expires_at, app_source) VALUES (?, ?, ?, ?, ?)', [hwid, 'Nouveau Client', status, expiresAt, source], (err) => {
                     if (err) return res.status(500).send('error');
                     db.run('INSERT INTO ip_history (hwid, ip) VALUES (?, ?)', [hwid, ip]);
                     return res.send(status);
@@ -121,7 +122,8 @@ app.get('/api/auth', (req, res) => {
 });
 
 app.post('/api/auth', (req, res) => {
-    const { hwid } = req.body;
+    const { hwid, source: bodySource } = req.body;
+    const source = bodySource || req.query.source || 'FUSION';
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
     if (!hwid) {
@@ -135,8 +137,8 @@ app.post('/api/auth', (req, res) => {
             if (err) return res.status(500).json({ status: 'error', message: 'Database error' });
 
             if (row) {
-                // Update last seen & IP
-                db.run('UPDATE devices SET last_seen = CURRENT_TIMESTAMP, last_ip = ? WHERE hwid = ?', [ip, hwid]);
+                // Update last seen, IP & source
+                db.run('UPDATE devices SET last_seen = CURRENT_TIMESTAMP, last_ip = ?, app_source = ? WHERE hwid = ?', [ip, source, hwid]);
                 db.run('INSERT INTO ip_history (hwid, ip) VALUES (?, ?)', [hwid, ip]);
 
                 if (hwid !== ADMIN_HWID && row.status === 'banned') {
@@ -162,7 +164,7 @@ app.post('/api/auth', (req, res) => {
                     expiresAt = new Date(Date.now() + settings.trialDays * 86400000).toISOString();
                 }
 
-                db.run('INSERT INTO devices (hwid, label, status, expires_at) VALUES (?, ?, ?, ?)', [hwid, 'Nouveau Client', status, expiresAt], (err) => {
+                db.run('INSERT INTO devices (hwid, label, status, expires_at, app_source) VALUES (?, ?, ?, ?, ?)', [hwid, 'Nouveau Client', status, expiresAt, source], (err) => {
                     if (err) return res.status(500).json({ status: 'error', message: 'Registration failed' });
                     db.run('INSERT INTO ip_history (hwid, ip) VALUES (?, ?)', [hwid, ip]);
                     const msg = status === 'allowed' ? 'Welcome!' : 'Appareil enregistré. Attente d\'approbation.';
@@ -172,6 +174,7 @@ app.post('/api/auth', (req, res) => {
         });
     });
 });
+
 
 // -- ADMIN APIS --
 app.get('/api/admin/stats', authMiddleware, (req, res) => {
