@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gravity FUSION | Boutique</title>
+    <style>
+        :root {
+            --bg-base: #06060c;
+            --bg-surface: #0c0d19;
+            --primary: #6366f1;
+            --text-primary: #f8fafc;
+            --border: #1e2038;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-base);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        h1 { margin-top: 0; font-size: 22px; }
+        .price {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            background: var(--bg-base);
+            border: 1px solid var(--border);
+            color: #fff;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            border: none;
+            color: #fff;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover { opacity: 0.9; }
+        .hidden { display: none; }
+        .status-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.05);
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="buy-section">
+    <h1>Accès FUSION - 1 Semaine</h1>
+    <div class="price">10€</div>
+    <p style="font-size:13px; color:#94a3b8; margin-bottom:20px;">Achetez votre accès sécurisé au mod menu OneState FUSION.</p>
+    
+    <input type="text" id="hwid" placeholder="Votre HWID (Généré par le menu)" required>
+    
+    <select id="method" onchange="updateForm()">
+        <option value="">-- Choisir une méthode de paiement --</option>
+        <option value="paypal">PayPal</option>
+        <option value="paysafecard">Paysafecard</option>
+        <option value="skrill">Skrill / CB</option>
+    </select>
+
+    <div id="paypal-info" class="hidden" style="margin-bottom:15px; font-size:13px; text-align:left;">
+        1. Envoyez 10€ à <b><a href="https://paypal.me/TONLIENPAYPAL" target="_blank" style="color:var(--primary);">TonLienPayPal</a></b> (Entre proches)<br>
+        2. Entrez l'ID de transaction ci-dessous :
+        <input type="text" id="proof-paypal" placeholder="ID de transaction PayPal" style="margin-top:10px;">
+    </div>
+
+    <div id="psc-info" class="hidden" style="margin-bottom:15px; font-size:13px; text-align:left;">
+        Entrez le code PIN à 16 chiffres de votre carte Paysafecard (10€ minimum) :
+        <input type="text" id="proof-psc" placeholder="XXXX-XXXX-XXXX-XXXX" style="margin-top:10px;">
+    </div>
+
+    <div id="skrill-info" class="hidden" style="margin-bottom:15px; font-size:13px; text-align:left;">
+        1. Envoyez 10€ sur notre compte Skrill: <b>tonemail@skrill.com</b><br>
+        2. Entrez l'email utilisé pour le paiement :
+        <input type="text" id="proof-skrill" placeholder="Votre email Skrill" style="margin-top:10px;">
+    </div>
+
+    <button onclick="submitOrder()">Valider mon paiement</button>
+
+    <div style="margin-top:15px;">
+        <a href="#" onclick="checkStatus()" style="color:#94a3b8; font-size:12px;">Déjà payé ? Vérifier l'état de ma commande</a>
+    </div>
+</div>
+
+<div class="container hidden" id="status-section">
+    <h1>Statut de la Commande</h1>
+    <div id="status-content" class="status-box">Chargement...</div>
+    <button onclick="location.reload()" style="margin-top:15px; background:#1e2038;">Retour</button>
+</div>
+
+<script>
+    function updateForm() {
+        const m = document.getElementById('method').value;
+        document.getElementById('paypal-info').classList.add('hidden');
+        document.getElementById('psc-info').classList.add('hidden');
+        document.getElementById('skrill-info').classList.add('hidden');
+        
+        if (m === 'paypal') document.getElementById('paypal-info').classList.remove('hidden');
+        if (m === 'paysafecard') document.getElementById('psc-info').classList.remove('hidden');
+        if (m === 'skrill') document.getElementById('skrill-info').classList.remove('hidden');
+    }
+
+    async function submitOrder() {
+        const hwid = document.getElementById('hwid').value.trim();
+        const method = document.getElementById('method').value;
+        if (!hwid || !method) return alert('Veuillez remplir tous les champs');
+
+        let proof = '';
+        if (method === 'paypal') proof = document.getElementById('proof-paypal').value.trim();
+        if (method === 'paysafecard') proof = document.getElementById('proof-psc').value.trim();
+        if (method === 'skrill') proof = document.getElementById('proof-skrill').value.trim();
+
+        if (!proof) return alert('Veuillez entrer la preuve de paiement ou le code.');
+
+        const res = await fetch('/api/store/order', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ hwid, method, proof })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            alert('Commande envoyée ! L\'administrateur va valider votre paiement.');
+            checkStatus(hwid);
+        } else {
+            alert('Erreur: ' + data.error);
+        }
+    }
+
+    async function checkStatus(forceHwid = null) {
+        const hwid = forceHwid || prompt('Entrez votre HWID pour vérifier :');
+        if (!hwid) return;
+
+        document.getElementById('buy-section').classList.add('hidden');
+        document.getElementById('status-section').classList.remove('hidden');
+        
+        const res = await fetch(`/api/store/status?hwid=${hwid}`);
+        const data = await res.json();
+        
+        const box = document.getElementById('status-content');
+        if (data.status === 'none') {
+            box.innerHTML = '<span style="color:red">Aucune commande trouvée pour ce HWID.</span>';
+        } else if (data.status === 'pending') {
+            box.innerHTML = '<span style="color:orange">⏳ Paiement en cours de vérification par l\'administrateur...</span><br><br><small>Revenez vérifier cette page plus tard.</small>';
+        } else if (data.status === 'approved') {
+            box.innerHTML = `<span style="color:#10b981">✅ Paiement Validé !</span><br><br>Votre accès HWID est activé pour 7 jours.<br><br><a href="${data.downloadLink}" target="_blank" style="display:block; padding:10px; background:#6366f1; color:#fff; text-decoration:none; border-radius:8px; margin-top:10px;">⬇️ Télécharger l'APK FUSION</a>`;
+        } else if (data.status === 'rejected') {
+            box.innerHTML = '<span style="color:red">❌ Paiement refusé (Code invalide ou paiement introuvable).</span>';
+        }
+    }
+</script>
+</body>
+</html>
