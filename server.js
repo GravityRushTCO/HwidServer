@@ -178,15 +178,20 @@ app.post('/api/auth', (req, res) => {
 
 // -- ADMIN APIS --
 app.get('/api/admin/stats', authMiddleware, (req, res) => {
-    db.all('SELECT status, expires_at FROM devices', [], (err, rows) => {
+    db.all('SELECT status, expires_at, app_source, approved_by FROM devices', [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         
-        let total = rows.length;
+        let filteredRows = rows;
+        if (req.adminName === 'Brodie') {
+            filteredRows = rows.filter(r => r.app_source !== 'FUSION' && r.approved_by !== 'Gravity');
+        }
+
+        let total = filteredRows.length;
         let active = 0;
         let pending = 0;
         let banned = 0;
 
-        rows.forEach(r => {
+        filteredRows.forEach(r => {
             if (r.status === 'banned') banned++;
             else if (r.status === 'pending') pending++;
             else if (r.status === 'allowed') {
@@ -205,7 +210,13 @@ app.get('/api/admin/stats', authMiddleware, (req, res) => {
 app.get('/api/admin/devices', authMiddleware, (req, res) => {
     db.all('SELECT * FROM devices ORDER BY last_seen DESC', [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
-        const safeRows = rows.map(r => {
+        
+        let filteredRows = rows;
+        if (req.adminName === 'Brodie') {
+            filteredRows = rows.filter(r => r.app_source !== 'FUSION' && r.approved_by !== 'Gravity');
+        }
+
+        const safeRows = filteredRows.map(r => {
             if (r.hwid === ADMIN_HWID) {
                 return { ...r, last_ip: 'Cachée (Admin)' };
             }
