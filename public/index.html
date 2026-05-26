@@ -540,6 +540,7 @@
                 <div class="search-wrapper" style="display: flex; gap: 12px; flex-wrap: wrap;">
                     <select id="filter-status" class="form-control" style="background: var(--bg-base); width: auto;" onchange="filterDevices()">
                         <option value="all">Toutes les listes</option>
+                        <option value="fusion">🔷 FUSION uniquement</option>
                         <option value="pending">En attente (Communs)</option>
                         <option value="mine">Mes Validations</option>
                         <option value="other">Validations de l'autre Admin</option>
@@ -557,6 +558,7 @@
                     <thead>
                         <tr>
                             <th>Appareil</th>
+                            <th>Source</th>
                             <th>Dernière IP</th>
                             <th>Statut</th>
                             <th>Validé par</th>
@@ -787,6 +789,12 @@
                         <div class="device-title">${d.label || 'Sans Nom'}</div>
                         <div class="device-sub">${d.hwid}</div>
                     </td>
+                    <td>
+                        ${d.app_source === 'FUSION'
+                            ? '<span style="background:linear-gradient(135deg,#6366f1,#ec4899);color:#fff;font-size:10px;font-weight:800;padding:3px 8px;border-radius:6px;letter-spacing:0.08em;">⚡ FUSION</span>'
+                            : `<span style="font-size:11px;color:var(--text-muted);">${d.app_source || '—'}</span>`
+                        }
+                    </td>
                     <td class="ip-info">${d.last_ip || 'Aucune'}</td>
                     <td><span class="badge ${badgeClass}">${badgeText}</span></td>
                     <td><span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">${d.approved_by ? (d.approved_by === adminName ? 'Moi' : d.approved_by) : '-'}</span></td>
@@ -811,7 +819,9 @@
                 (d.label && d.label.toLowerCase().includes(q))
             );
 
-            if (filterType === 'pending') {
+            if (filterType === 'fusion') {
+                filtered = filtered.filter(d => d.app_source === 'FUSION');
+            } else if (filterType === 'pending') {
                 filtered = filtered.filter(d => d.status === 'pending');
             } else if (filterType === 'mine') {
                 filtered = filtered.filter(d => d.status === 'allowed' && d.approved_by === adminName);
