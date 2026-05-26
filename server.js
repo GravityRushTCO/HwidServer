@@ -207,28 +207,16 @@ app.post('/api/store/order', (req, res) => {
     db.run('INSERT INTO orders (hwid, method, proof) VALUES (?, ?, ?)', [hwid, method, proof], (err) => {
         if (err) return res.status(500).json({ error: err.message });
         
-        // Envoi de la notification Push
-        const postData = Buffer.from(`Telegram: ${hwid}\nMéthode: ${method}\nPreuve: ${proof}`, 'utf8');
-        const options = {
-            hostname: 'ntfy.sh',
-            port: 443,
-            path: '/Gravity_FUSION_Boutique_Privee_X9V2',
+        // Envoi de la notification Push via fetch (Node 18+)
+        fetch('https://ntfy.sh/Gravity_FUSION_Boutique_Privee_X9V2', {
             method: 'POST',
+            body: `Telegram: ${hwid}\nMéthode: ${method}\nPreuve: ${proof}`,
             headers: {
                 'Title': 'Nouveau Paiement FUSION',
                 'Tags': 'money_with_wings,bell',
-                'Priority': 'high',
-                'Content-Type': 'text/plain; charset=utf-8',
-                'Content-Length': postData.length
+                'Priority': 'high'
             }
-        };
-
-        const reqNtfy = https.request(options, (resNtfy) => {
-            resNtfy.on('data', () => {}); // Consume data to free memory
-        });
-        reqNtfy.on('error', (e) => console.error('[Ntfy Error]', e));
-        reqNtfy.write(postData);
-        reqNtfy.end();
+        }).catch(e => console.error('[Ntfy Fetch Error]', e));
 
         res.json({ success: true, message: 'Commande reçue. En attente de validation.' });
     });
