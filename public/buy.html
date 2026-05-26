@@ -79,7 +79,7 @@
     <div class="price">10€</div>
     <p style="font-size:13px; color:#94a3b8; margin-bottom:20px;">Achetez votre accès sécurisé au mod menu OneState FUSION.</p>
     
-    <input type="text" id="hwid" placeholder="Votre HWID (Généré par le menu)" required>
+    <input type="text" id="telegram" placeholder="@VotreTelegram (Pour vous identifier)" required>
     
     <select id="method" onchange="updateForm()">
         <option value="">-- Choisir une méthode de paiement --</option>
@@ -133,9 +133,9 @@
     }
 
     async function submitOrder() {
-        const hwid = document.getElementById('hwid').value.trim();
+        const telegram = document.getElementById('telegram').value.trim();
         const method = document.getElementById('method').value;
-        if (!hwid || !method) return alert('Veuillez remplir tous les champs');
+        if (!telegram || !method) return alert('Veuillez remplir tous les champs');
 
         let proof = '';
         if (method === 'paypal') {
@@ -152,26 +152,26 @@
         const res = await fetch('/api/store/order', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ hwid, method, proof })
+            body: JSON.stringify({ hwid: telegram, method, proof })
         });
         const data = await res.json();
         
         if (data.success) {
             alert('Commande envoyée ! L\'administrateur va valider votre paiement.');
-            checkStatus(hwid);
+            checkStatus(telegram);
         } else {
             alert('Erreur: ' + data.error);
         }
     }
 
-    async function checkStatus(forceHwid = null) {
-        const hwid = forceHwid || prompt('Entrez votre HWID pour vérifier :');
-        if (!hwid) return;
+    async function checkStatus(forceTg = null) {
+        const telegram = forceTg || prompt('Entrez votre @Telegram pour vérifier votre commande :');
+        if (!telegram) return;
 
         document.getElementById('buy-section').classList.add('hidden');
         document.getElementById('status-section').classList.remove('hidden');
         
-        const res = await fetch(`/api/store/status?hwid=${hwid}`);
+        const res = await fetch(`/api/store/status?hwid=${encodeURIComponent(telegram)}`);
         const data = await res.json();
         
         const box = document.getElementById('status-content');
@@ -180,7 +180,7 @@
         } else if (data.status === 'pending') {
             box.innerHTML = '<span style="color:orange">⏳ Paiement en cours de vérification par l\'administrateur...</span><br><br><small>Revenez vérifier cette page plus tard.</small>';
         } else if (data.status === 'approved') {
-            box.innerHTML = `<span style="color:#10b981">✅ Paiement Validé !</span><br><br>Votre accès HWID est activé pour 7 jours.<br><br><a href="${data.downloadLink}" target="_blank" style="display:block; padding:10px; background:#6366f1; color:#fff; text-decoration:none; border-radius:8px; margin-top:10px;">⬇️ Télécharger l'APK FUSION</a>`;
+            box.innerHTML = `<span style="color:#10b981">✅ Paiement Validé !</span><br><br>Voici votre lien de téléchargement. Une fois l'APK installé et ouvert, prévenez l'administrateur pour qu'il active votre accès.<br><br><a href="${data.downloadLink}" target="_blank" style="display:block; padding:10px; background:#6366f1; color:#fff; text-decoration:none; border-radius:8px; margin-top:10px;">⬇️ Télécharger l'APK FUSION</a>`;
         } else if (data.status === 'rejected') {
             box.innerHTML = '<span style="color:red">❌ Paiement refusé (Code invalide ou paiement introuvable).</span>';
         }
