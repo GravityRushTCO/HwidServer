@@ -876,15 +876,19 @@
                             return;
                         }
                         try {
-                            const res = await fetch(`https://get.geojs.io/v1/ip/geo/${ip.ip}.json`);
+                            const res = await fetch(`https://ipwho.is/${ip.ip}`);
                             if (res.ok) {
                                 const geo = await res.json();
-                                const city = geo.city || 'Ville inconnue';
-                                const region = geo.region || 'Région inconnue';
-                                const country = geo.country || 'Pays inconnu';
-                                const org = geo.organization || geo.organization_name || 'Opérateur inconnu';
-                                geoEl.innerHTML = `📍 ${city}, ${region} (${country}) &nbsp;&bull;&nbsp; 🏢 ${org}`;
-                                geoEl.style.color = 'var(--text-primary)';
+                                if (geo.success) {
+                                    const city = geo.city || 'Ville inconnue';
+                                    const region = geo.region || 'Région inconnue';
+                                    const country = geo.country || 'Pays inconnu';
+                                    const org = (geo.connection && (geo.connection.org || geo.connection.isp)) || 'Opérateur inconnu';
+                                    geoEl.innerHTML = `📍 ${city}, ${region} (${country}) &nbsp;&bull;&nbsp; 🏢 ${org}`;
+                                    geoEl.style.color = 'var(--text-primary)';
+                                } else {
+                                    geoEl.innerText = `⚠️ Impossible de localiser: ${geo.message || 'Erreur'}`;
+                                }
                             } else {
                                 geoEl.innerText = '⚠️ Impossible de localiser';
                             }
