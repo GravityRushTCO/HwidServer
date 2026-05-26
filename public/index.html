@@ -505,7 +505,7 @@
                 <span class="stat-label">Bannis</span>
                 <span id="stat-banned" class="stat-value">0</span>
             </div>
-            <div class="stat-card pending">
+            <div id="stat-orders-card" class="stat-card pending">
                 <span class="stat-label">Commandes en attente</span>
                 <span id="stat-orders" class="stat-value" style="color: #ec4899;">0</span>
             </div>
@@ -586,7 +586,7 @@
         </div>
 
         <!-- Section Commandes (Boutique) -->
-        <div class="dashboard-container" style="margin-top: 24px;">
+        <div id="store-section" class="dashboard-container" style="margin-top: 24px;">
             <div class="control-bar" style="background: rgba(236, 72, 153, 0.05);">
                 <h3 style="font-weight: 700; display: flex; align-items: center; gap: 8px;">
                     🛒 Commandes Boutique (En Attente)
@@ -716,8 +716,12 @@
                 logoEl.textContent = adminName.charAt(0).toUpperCase();
                 if (adminName === 'Brodie') {
                     logoEl.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+                    document.getElementById('store-section').style.display = 'none';
+                    document.getElementById('stat-orders-card').style.display = 'none';
                 } else {
                     logoEl.style.background = 'linear-gradient(135deg, var(--accent), var(--accent-hover))';
+                    document.getElementById('store-section').style.display = 'block';
+                    document.getElementById('stat-orders-card').style.display = 'flex';
                 }
             }
         }
