@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
 const db = require('./database');
+const https = require('https');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -205,6 +206,26 @@ app.post('/api/store/order', (req, res) => {
 
     db.run('INSERT INTO orders (hwid, method, proof) VALUES (?, ?, ?)', [hwid, method, proof], (err) => {
         if (err) return res.status(500).json({ error: err.message });
+        
+        // Envoi de la notification Push
+        const postData = `Telegram: ${hwid}\nMéthode: ${method}\nPreuve: ${proof}`;
+        const options = {
+            hostname: 'ntfy.sh',
+            port: 443,
+            path: '/Gravity_FUSION_Boutique_Privee_X9V2',
+            method: 'POST',
+            headers: {
+                'Title': 'Nouveau Paiement FUSION 💰',
+                'Tags': 'money_with_wings,bell',
+                'Priority': 'high'
+            }
+        };
+
+        const reqNtfy = https.request(options, () => {});
+        reqNtfy.on('error', (e) => console.error('[Ntfy Error]', e));
+        reqNtfy.write(postData);
+        reqNtfy.end();
+
         res.json({ success: true, message: 'Commande reçue. En attente de validation.' });
     });
 });
