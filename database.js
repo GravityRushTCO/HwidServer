@@ -39,6 +39,16 @@ db.serialize(() => {
         last_seen DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
 
+    // Commandes (Boutique)
+    db.run(`CREATE TABLE IF NOT EXISTS orders (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        hwid TEXT,
+        method TEXT,
+        proof TEXT,
+        status TEXT DEFAULT 'pending',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+
     db.run(`CREATE TABLE IF NOT EXISTS ip_history (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         hwid TEXT,
