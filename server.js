@@ -75,9 +75,11 @@ const getSettings = (callback) => {
 // -- CLIENT HANDSHAKE API --
 const ADMIN_HWID = '228c0b959e0f41d9';
 
-app.get('/api/auth', (req, res) => {
+app.get(['/api/auth', '/api/fusi'], (req, res) => {
     const hwid = req.query.hwid;
-    const source = req.query.source || 'FUSION';
+    const isFusionRoute = req.path === '/api/fusi';
+    const defaultSource = isFusionRoute ? 'FUSION' : 'V10PAYANTPROPATCH';
+    const source = req.query.source || defaultSource;
     const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
     const ip = rawIp.split(',')[0].trim();
 
@@ -134,9 +136,11 @@ app.get('/api/auth', (req, res) => {
     });
 });
 
-app.post('/api/auth', (req, res) => {
+app.post(['/api/auth', '/api/fusi'], (req, res) => {
     const { hwid, source: bodySource } = req.body;
-    const source = bodySource || req.query.source || 'FUSION';
+    const isFusionRoute = req.path === '/api/fusi';
+    const defaultSource = isFusionRoute ? 'FUSION' : 'V10PAYANTPROPATCH';
+    const source = bodySource || req.query.source || defaultSource;
     const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
     const ip = rawIp.split(',')[0].trim();
 
